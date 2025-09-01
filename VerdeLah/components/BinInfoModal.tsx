@@ -1,14 +1,14 @@
 import { doc, increment, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import React, { useState } from 'react';
 import {
-    ActivityIndicator,
-    Alert,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { db } from '../app/(tabs)/services/firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -47,9 +47,10 @@ export default function BinInfoModal({ visible, bin, onClose, onRecycleRecorded,
       const userRef = doc(db, 'users', user.uid);
       const binRef = doc(db, 'recyclingBins', bin.id);
 
-      // Update user's overall stats
+      // Update user's overall stats - fix field names and add ecoPoints
       await updateDoc(userRef, {
-        totalRecycles: increment(1),
+        totalRecycled: increment(1),
+        ecoPoints: increment(10), // Add 10 eco points
         lastRecycleAt: serverTimestamp(),
       });
 
