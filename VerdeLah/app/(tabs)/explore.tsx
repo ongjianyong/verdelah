@@ -1,10 +1,19 @@
 import { useAuth } from '@/contexts/AuthContext';
-import React, { useState } from 'react';
+import { useMap } from '@/contexts/MapContext';
+import React, { useEffect, useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import RecyclingBinMap from '../../components/RecyclingBinMap';
 
 export default function ExploreScreen() {
   const { userData } = useAuth();
+  const { setMapOpen } = useMap();
   const [scanning, setScanning] = useState(false);
+  const [showMap, setShowMap] = useState(false);
+
+  // Update map context when showMap changes
+  useEffect(() => {
+    setMapOpen(showMap);
+  }, [showMap, setMapOpen]);
 
   const handleScan = () => {
     setScanning(true);
@@ -60,13 +69,16 @@ export default function ExploreScreen() {
             </Text>
           </View>
 
-          <View style={styles.featureCard}>
+          <TouchableOpacity 
+            style={styles.featureCard}
+            onPress={() => setShowMap(!showMap)}
+          >
             <Text style={styles.featureIcon}>📍</Text>
             <Text style={styles.featureTitle}>Bin Locator</Text>
             <Text style={styles.featureDescription}>
               Find nearby recycling bins and facilities
             </Text>
-          </View>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.stats}>
@@ -83,6 +95,13 @@ export default function ExploreScreen() {
           </View>
         </View>
       </View>
+
+      {/* Map View */}
+      {showMap && (
+        <View style={styles.mapContainer}>
+          <RecyclingBinMap onClose={() => setShowMap(false)} />
+        </View>
+      )}
     </View>
   );
 }
@@ -194,5 +213,13 @@ const styles = StyleSheet.create({
   statLabel: {
     fontSize: 12,
     color: '#666',
+  },
+  mapContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
   },
 });

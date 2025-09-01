@@ -7,10 +7,12 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 import { IconSymbol } from '@/components/ui/IconSymbol';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
+import { useMap } from '@/contexts/MapContext';
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const { isMapOpen } = useMap();
 
   return (
     <ProtectedRoute>
@@ -20,7 +22,7 @@ export default function TabLayout() {
           headerShown: false,
           tabBarButton: HapticTab,
           tabBarBackground: TabBarBackground,
-          tabBarStyle: Platform.select({
+          tabBarStyle: isMapOpen ? { display: 'none' } : Platform.select({
             ios: {
               position: 'absolute',
             },
@@ -53,13 +55,6 @@ export default function TabLayout() {
           options={{
             title: 'Profile',
             tabBarIcon: ({ color }) => <IconSymbol size={28} name="person.fill" color={color} />,
-          }}
-        />
-        <Tabs.Screen
-          name="debug"
-          options={{
-            title: 'Debug',
-            tabBarIcon: ({ color }) => <IconSymbol size={28} name="wrench.fill" color={color} />,
           }}
         />
       </Tabs>
