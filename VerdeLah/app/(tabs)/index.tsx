@@ -1,10 +1,10 @@
 import { useAuth } from '@/contexts/AuthContext';
-import { router } from 'expo-router';
-import React, { useState,useEffect } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ECO_TIPS } from './services/ecotips';
 import { testFirebaseConnections } from './services/firebase-test';
-import{ECO_TIPS} from './services/ecotips';
 
 
 
@@ -52,7 +52,7 @@ export default function HomeScreen() {
       title: 'Find Bins',
       description: 'Locate nearby bins',
       icon: '📍',
-      onPress: () => Alert.alert('Coming Soon', 'Bin locator feature coming soon!'),
+      onPress: () => router.push('/(tabs)/explore?openMap=true'),
     },
     {
       title: 'Leaderboard',
