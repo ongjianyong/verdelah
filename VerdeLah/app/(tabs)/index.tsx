@@ -1,19 +1,37 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { router } from 'expo-router';
-import React, { useEffect } from 'react';
+import React, { useState,useEffect } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { testFirebaseConnections } from './services/firebase-test';
+import{ECO_TIPS} from './services/ecotips';
+
+
+
+function getRandomTips(count = 3) {
+  const shuffled = ECO_TIPS.sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
+}
 
 export default function HomeScreen() {
   const { userData } = useAuth();
+  const [tips, setTips] = useState(getRandomTips());
 
-  // Test Firebase connections on app start
+
+  useFocusEffect(
+    React.useCallback(() => {
+      setTips(getRandomTips());
+    }, [])
+  );
+
+
+ 
   useEffect(() => {
     testFirebaseConnections().then((result) => {
       if (result.success) {
-        console.log('🎉 Firebase test passed:', result.message);
+        console.log(' Firebase test passed:', result.message);
       } else {
-        console.error('❌ Firebase test failed:', result.error);
+        console.error('Firebase test failed:', result.error);
         Alert.alert(
           'Firebase Connection Error',
           'Failed to connect to Firebase services. Please check your configuration.',
@@ -88,21 +106,10 @@ export default function HomeScreen() {
 
         <View style={styles.tipsContainer}>
           <Text style={styles.sectionTitle}>💡 Eco Tips</Text>
-          <View style={styles.tipCard}>
-            <Text style={styles.tipText}>
-              • Rinse containers before recycling to avoid contamination
-            </Text>
-          </View>
-          <View style={styles.tipCard}>
-            <Text style={styles.tipText}>
-              • Check the recycling symbol on plastic items before disposing
-            </Text>
-          </View>
-          <View style={styles.tipCard}>
-            <Text style={styles.tipText}>
-              • Use reusable bags and containers to reduce single-use waste
-            </Text>
-          </View>
+              {tips.map((tip, idx) => (
+              <View style={styles.tipCard} key={idx}>
+              <Text style={styles.tipText}>✅ {tip}</Text>
+              </View> ))}
         </View>
       </ScrollView>
     </View>
