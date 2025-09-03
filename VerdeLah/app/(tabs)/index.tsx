@@ -79,7 +79,7 @@ export default function HomeScreen() {
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{userData?.ecoPoints || 0}</Text>
-            <Text style={styles.statLabel}>Eco Points</Text>
+            <Text style={styles.statLabelSingle}>Eco Points</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{userData?.totalRecycled || 0}</Text>
@@ -87,7 +87,7 @@ export default function HomeScreen() {
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>Level {userData?.level || 1}</Text>
-            <Text style={styles.statLabel}>Current Level</Text>
+            <Text style={styles.statLabelSingle}>Current Level</Text>
           </View>
         </View>
 
@@ -195,6 +195,12 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
   },
+  statLabelSingle: {
+    fontSize: 12,
+    color: '#666',
+    textAlign: 'center',
+    marginTop: 8,
+  },
   quickActions: {
     marginBottom: 20,
   },
@@ -256,8 +262,9 @@ const styles = StyleSheet.create({
   challengeSection: {
     backgroundColor: 'white',
     padding: 20,
+    paddingBottom: 15,
     borderRadius: 10,
-    marginBottom: 20,
+    marginBottom: 25,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -265,13 +272,14 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   challengePreview: {
-    paddingVertical: 15,
+    paddingTop: 5,
+    paddingBottom: 5,
   },
   challengeText: {
     fontSize: 16,
     color: '#333',
     lineHeight: 22,
-    marginBottom: 10,
+    marginBottom: 20,
   },
   challengeButton: {
     backgroundColor: '#2E7D32',
