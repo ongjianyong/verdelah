@@ -1,5 +1,5 @@
 import { User, onAuthStateChanged, signOut } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth, db } from '../app/(tabs)/services/firebase';
 
@@ -11,6 +11,7 @@ interface UserData {
   totalRecycled: number;
   joinDate: string;
   level: number;
+  neighborhood: string;
 }
 
 interface AuthContextType {
@@ -19,6 +20,7 @@ interface AuthContextType {
   loading: boolean;
   logout: () => Promise<void>;
   refreshUserData: () => Promise<void>;
+  updateUserData: (updates: Partial<UserData>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -42,6 +44,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const refreshUserData = async () => {
     if (user) {
       await fetchUserData(user.uid);
+    }
+  };
+
+  const updateUserData = async (updates: Partial<UserData>) => {
+    if (user && userData) {
+      try {
+        const userRef = doc(db, 'users', user.uid);
+        await updateDoc(userRef, updates);
+        await fetchUserData(user.uid); // Refresh the data
+      } catch (error) {
+        console.error('Error updating user data:', error);
+        throw error;
+      }
     }
   };
 
@@ -75,6 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading,
     logout,
     refreshUserData,
+    updateUserData,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

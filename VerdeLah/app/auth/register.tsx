@@ -13,18 +13,55 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { auth, db } from '../(tabs)/services/firebase';
+
+// Singapore neighborhoods for the challenge
+const SINGAPORE_NEIGHBORHOODS = [
+  'Ang Mo Kio',
+  'Bedok',
+  'Bishan',
+  'Boon Lay',
+  'Bukit Batok',
+  'Bukit Merah',
+  'Bukit Panjang',
+  'Bukit Timah',
+  'Central Area',
+  'Choa Chu Kang',
+  'Clementi',
+  'Geylang',
+  'Hougang',
+  'Jurong East',
+  'Jurong West',
+  'Kallang',
+  'Lim Chu Kang',
+  'Mandai',
+  'Marine Parade',
+  'Novena',
+  'Pasir Ris',
+  'Punggol',
+  'Queenstown',
+  'Sembawang',
+  'Sengkang',
+  'Serangoon',
+  'Tampines',
+  'Tanglin',
+  'Toa Payoh',
+  'Woodlands',
+  'Yishun'
+];
 
 export default function RegisterScreen() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [neighborhood, setNeighborhood] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
-    if (!name || !email || !password || !confirmPassword) {
-      Alert.alert('Error', 'Please fill in all fields');
+    if (!name || !email || !password || !confirmPassword || !neighborhood) {
+      Alert.alert('Error', 'Please fill in all fields including neighborhood');
       return;
     }
 
@@ -55,6 +92,7 @@ export default function RegisterScreen() {
         totalRecycled: 0,
         joinDate: new Date().toISOString(),
         level: 1,
+        neighborhood: neighborhood,
       });
 
       Alert.alert('Success', 'Account created successfully!', [
@@ -98,6 +136,20 @@ export default function RegisterScreen() {
             autoCapitalize="none"
             autoCorrect={false}
           />
+
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={neighborhood}
+              onValueChange={(itemValue) => setNeighborhood(itemValue)}
+              style={styles.picker}
+              mode="dropdown"
+            >
+              <Picker.Item label="Select your neighborhood" value="" />
+              {SINGAPORE_NEIGHBORHOODS.map((hood) => (
+                <Picker.Item key={hood} label={hood} value={hood} />
+              ))}
+            </Picker>
+          </View>
 
           <TextInput
             style={styles.input}
@@ -179,6 +231,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     borderWidth: 1,
     borderColor: '#ddd',
+  },
+  pickerContainer: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  picker: {
+    height: 50,
   },
   button: {
     backgroundColor: '#2E7D32',

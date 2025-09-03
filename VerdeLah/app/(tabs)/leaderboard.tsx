@@ -3,6 +3,8 @@ import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore';
 import React, { useCallback, useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { db } from './services/firebase';
+import { NeighborhoodLeaderboardService, NeighborhoodStats } from '../../services/neighborhood-leaderboard';
+import { useLocalSearchParams } from 'expo-router';
 
 interface LeaderboardEntry {
   id: string;
@@ -13,31 +15,40 @@ interface LeaderboardEntry {
 
 export default function Leaderboard() {
   const { userData } = useAuth();
+  const params = useLocalSearchParams();
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
+  const [neighborhoodLeaderboard, setNeighborhoodLeaderboard] = useState<NeighborhoodStats[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTab, setSelectedTab] = useState<'points' | 'recycled'>('points');
+  const [selectedTab, setSelectedTab] = useState<'points' | 'recycled' | 'neighborhood'>(
+    params.tab === 'neighborhood' ? 'neighborhood' : 'points'
+  );
 
   const fetchLeaderboard = useCallback(async () => {
     try {
       setLoading(true);
-      const usersRef = collection(db, 'users');
-      const q = query(
-        usersRef,
-        orderBy(selectedTab === 'points' ? 'ecoPoints' : 'totalRecycled', 'desc'),
-        limit(10)
-      );
-      
-      const querySnapshot = await getDocs(q);
-      const data: LeaderboardEntry[] = [];
-      
-      querySnapshot.forEach((doc) => {
-        data.push({
-          id: doc.id,
-          ...doc.data(),
-        } as LeaderboardEntry);
-      });
-      
-      setLeaderboard(data);
+      if (selectedTab === 'neighborhood') {
+        const data = await NeighborhoodLeaderboardService.getNeighborhoodLeaderboard();
+        setNeighborhoodLeaderboard(data);
+      } else {
+        const usersRef = collection(db, 'users');
+        const q = query(
+          usersRef,
+          orderBy(selectedTab === 'points' ? 'ecoPoints' : 'totalRecycled', 'desc'),
+          limit(10)
+        );
+        
+        const querySnapshot = await getDocs(q);
+        const data: LeaderboardEntry[] = [];
+        
+        querySnapshot.forEach((doc) => {
+          data.push({
+            id: doc.id,
+            ...doc.data(),
+          } as LeaderboardEntry);
+        });
+        
+        setLeaderboard(data);
+      }
     } catch (error) {
       console.error('Error fetching leaderboard:', error);
     } finally {
@@ -75,11 +86,42 @@ export default function Leaderboard() {
     );
   };
 
+  const renderNeighborhoodItem = ({ item, index }: { item: NeighborhoodStats; index: number }) => {
+    const isCurrentUserNeighborhood = userData?.neighborhood === item.name;
+    
+    return (
+      <View style={[styles.leaderboardItem, isCurrentUserNeighborhood && styles.currentUserItem]}>
+        <View style={styles.rankContainer}>
+          <Text style={[styles.rank, isCurrentUserNeighborhood && styles.currentUserText]}>
+            #{index + 1}
+          </Text>
+        </View>
+        <View style={styles.userInfo}>
+          <Text style={[styles.userName, isCurrentUserNeighborhood && styles.currentUserText]}>
+            {item.name}
+          </Text>
+          <Text style={styles.userStats}>
+            {item.averagePoints} avg points • {item.userCount} members
+          </Text>
+        </View>
+        <View style={styles.neighborhoodScore}>
+          <Text style={[styles.scoreText, isCurrentUserNeighborhood && styles.currentUserText]}>
+            {item.averagePoints}
+          </Text>
+          <Text style={styles.scoreLabel}>pts</Text>
+        </View>
+        {isCurrentUserNeighborhood && <Text style={styles.youLabel}>YOURS</Text>}
+      </View>
+    );
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Leaderboard</Text>
-        <Text style={styles.subtitle}>Top Eco Warriors</Text>
+        <Text style={styles.subtitle}>
+          {selectedTab === 'neighborhood' ? 'Top Neighborhoods' : 'Top Eco Warriors'}
+        </Text>
       </View>
 
       <View style={styles.tabContainer}>
@@ -99,6 +141,14 @@ export default function Leaderboard() {
             Items Recycled
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, selectedTab === 'neighborhood' && styles.activeTab]}
+          onPress={() => setSelectedTab('neighborhood')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'neighborhood' && styles.activeTabText]}>
+            Neighborhoods
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <View style={styles.content}>
@@ -108,9 +158,9 @@ export default function Leaderboard() {
           </View>
         ) : (
           <FlatList
-            data={leaderboard}
-            renderItem={renderLeaderboardItem}
-            keyExtractor={(item) => item.id}
+            data={selectedTab === 'neighborhood' ? neighborhoodLeaderboard : leaderboard}
+            renderItem={selectedTab === 'neighborhood' ? renderNeighborhoodItem : renderLeaderboardItem}
+            keyExtractor={(item) => selectedTab === 'neighborhood' ? item.name : item.id}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContainer}
           />
@@ -230,6 +280,19 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
+  },
+  neighborhoodScore: {
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  scoreText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2E7D32',
+  },
+  scoreLabel: {
+    fontSize: 10,
+    color: '#666',
   },
   loadingContainer: {
     flex: 1,
