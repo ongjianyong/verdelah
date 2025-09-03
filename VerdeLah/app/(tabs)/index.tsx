@@ -71,7 +71,11 @@ export default function HomeScreen() {
         <Text style={styles.subtitle}>Ready to make a difference today?</Text>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content} 
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         <View style={styles.statsContainer}>
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{userData?.ecoPoints || 0}</Text>
@@ -158,6 +162,9 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 20,
+  },
+  scrollContent: {
+    paddingBottom: 70,
   },
   statsContainer: {
     flexDirection: 'row',
