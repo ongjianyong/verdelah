@@ -1,10 +1,10 @@
 import { useAuth } from '@/contexts/AuthContext';
-import { router } from 'expo-router';
-import React, { useState,useEffect } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
+import { router } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ECO_TIPS } from './services/ecotips';
 import { testFirebaseConnections } from './services/firebase-test';
-import{ECO_TIPS} from './services/ecotips';
 
 
 
@@ -52,7 +52,7 @@ export default function HomeScreen() {
       title: 'Find Bins',
       description: 'Locate nearby bins',
       icon: '📍',
-      onPress: () => Alert.alert('Coming Soon', 'Bin locator feature coming soon!'),
+      onPress: () => router.push('/(tabs)/explore?openMap=true'),
     },
     {
       title: 'Leaderboard',
@@ -103,6 +103,24 @@ export default function HomeScreen() {
             </TouchableOpacity>
           ))}
         </View>
+
+        {/* Neighborhood Challenge Section */}
+        {userData?.neighborhood && (
+          <View style={styles.challengeSection}>
+            <Text style={styles.sectionTitle}>🏆 Neighborhood Challenge</Text>
+            <View style={styles.challengePreview}>
+              <Text style={styles.challengeText}>
+                Compete with {userData.neighborhood} for the title of &ldquo;Greenest Neighborhood of the Month&rdquo;!
+              </Text>
+              <TouchableOpacity
+                style={styles.challengeButton}
+                onPress={() => router.push('/(tabs)/neighborhood-challenge')}
+              >
+                <Text style={styles.challengeButtonText}>Join Challenge</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
 
         <View style={styles.tipsContainer}>
           <Text style={styles.sectionTitle}>💡 Eco Tips</Text>
@@ -227,5 +245,38 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#333',
     lineHeight: 20,
+  },
+  challengeSection: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    marginBottom: 20,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  challengePreview: {
+    paddingVertical: 15,
+  },
+  challengeText: {
+    fontSize: 16,
+    color: '#333',
+    lineHeight: 22,
+    marginBottom: 10,
+  },
+  challengeButton: {
+    backgroundColor: '#2E7D32',
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  challengeButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

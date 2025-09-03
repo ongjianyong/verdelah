@@ -289,7 +289,7 @@ export default function RecyclingBinMap({ onBinSelected, onClose }: MapProps) {
 
       {/* Bin Info Modal */}
       <BinInfoModal
-        visible={showModal}
+        visible={showModal && !showLeaderboard}
         bin={selectedBin}
         onClose={handleModalClose}
         onRecycleRecorded={handleRecycleRecorded}
@@ -297,7 +297,7 @@ export default function RecyclingBinMap({ onBinSelected, onClose }: MapProps) {
       />
 
       {/* Bin Leaderboard Modal */}
-      {selectedBin && (
+      {showLeaderboard && selectedBin && (
         <BinLeaderboard
           bin={selectedBin}
           onClose={handleLeaderboardClose}

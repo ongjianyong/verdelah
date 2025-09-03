@@ -1,5 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import { useMap } from '@/contexts/MapContext';
+import { useFocusEffect } from '@react-navigation/native';
+import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import RecyclingBinMap from '../../components/RecyclingBinMap';
@@ -7,6 +9,7 @@ import RecyclingBinMap from '../../components/RecyclingBinMap';
 export default function ExploreScreen() {
   const { userData } = useAuth();
   const { setMapOpen } = useMap();
+  const { openMap } = useLocalSearchParams();
   const [scanning, setScanning] = useState(false);
   const [showMap, setShowMap] = useState(false);
 
@@ -14,6 +17,18 @@ export default function ExploreScreen() {
   useEffect(() => {
     setMapOpen(showMap);
   }, [showMap, setMapOpen]);
+
+  // Auto-open map if openMap parameter is set to 'true'
+  // Use useFocusEffect to handle navigation back to this screen
+  useFocusEffect(
+    React.useCallback(() => {
+      if (openMap === 'true') {
+        setShowMap(true);
+        // Clear the parameter from the URL after opening the map
+        router.setParams({ openMap: undefined });
+      }
+    }, [openMap])
+  );
 
   const handleScan = () => {
     setScanning(true);

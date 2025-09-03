@@ -1,14 +1,14 @@
-import { doc, increment, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
+import { collection, doc, increment, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import React, { useState } from 'react';
 import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    Alert,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { db } from '../app/(tabs)/services/firebase';
 import { useAuth } from '../contexts/AuthContext';
@@ -59,6 +59,16 @@ export default function BinInfoModal({ visible, bin, onClose, onRecycleRecorded,
         totalRecycles: increment(1),
         lastRecycleAt: serverTimestamp(),
       }, { merge: true });
+
+      // Record individual recycling event for leaderboard tracking
+      const recyclingEventRef = doc(collection(db, 'userRecycling'));
+      await setDoc(recyclingEventRef, {
+        userId: user.uid,
+        binId: bin.id,
+        binName: bin.name,
+        recycledAt: serverTimestamp(),
+        ecoPointsEarned: 10,
+      });
 
       Alert.alert('Success', `Recycling recorded at ${bin.name}! You earned 10 points.`);
       onRecycleRecorded();
