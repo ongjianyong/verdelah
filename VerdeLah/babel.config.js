@@ -15,6 +15,7 @@ module.exports = function (api) {
           verbose: false,
         },
       ],
+      '@babel/plugin-transform-class-static-block',
     ],
   };
 };

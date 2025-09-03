@@ -18,7 +18,9 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "This app needs location access to show your position and find nearby recycling bins.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs location access to show your position and find nearby recycling bins."
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app needs location access to show your position and find nearby recycling bins.",
+        "NSCameraUsageDescription": "This app needs camera access to scan items and provide recycling information.",
+        "NSPhotoLibraryUsageDescription": "This app needs access to your photo library to select images for recycling analysis."
       }
     },
     "android": {
@@ -28,7 +30,9 @@
       },
       "permissions": [
         "ACCESS_FINE_LOCATION",
-        "ACCESS_COARSE_LOCATION"
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA",
+        "READ_EXTERNAL_STORAGE"
       ]
     },
     "web": {

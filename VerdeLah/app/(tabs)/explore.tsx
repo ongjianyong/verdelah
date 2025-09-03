@@ -3,8 +3,12 @@ import { useMap } from '@/contexts/MapContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
 import RecyclingBinMap from '../../components/RecyclingBinMap';
+import CameraScanner from '../../components/CameraScanner';
+import RecyclingInfoModal from '../../components/RecyclingInfoModal';
+import BookmarksModal from '../../components/BookmarksModal';
+import { detectItem, DetectedItem } from '../../services/itemDetection';
 
 export default function ExploreScreen() {
   const { userData } = useAuth();
@@ -12,6 +16,11 @@ export default function ExploreScreen() {
   const { openMap } = useLocalSearchParams();
   const [scanning, setScanning] = useState(false);
   const [showMap, setShowMap] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [detectedItem, setDetectedItem] = useState<DetectedItem | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showBookmarks, setShowBookmarks] = useState(false);
 
   // Update map context when showMap changes
   useEffect(() => {
@@ -31,35 +40,84 @@ export default function ExploreScreen() {
   );
 
   const handleScan = () => {
-    setScanning(true);
-    // Simulate scanning process
-    setTimeout(() => {
-      setScanning(false);
+    setShowCamera(true);
+  };
+
+  const handleScanComplete = async (imageUri: string) => {
+    setIsProcessing(true);
+    try {
+      const result = await detectItem(imageUri);
+      if (result) {
+        setDetectedItem(result);
+        setShowResults(true);
+      } else {
+        Alert.alert(
+          'Detection Failed',
+          'We couldn\'t identify the item. Please try again with better lighting or a clearer image.',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      console.error('Detection error:', error);
       Alert.alert(
-        'Scan Complete!',
-        'This is a placeholder for the AI scanning feature. In the full version, this will identify items and provide recycling information.',
+        'Error',
+        'Something went wrong during detection. Please try again.',
         [{ text: 'OK' }]
       );
-    }, 2000);
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleCloseResults = () => {
+    setShowResults(false);
+    setDetectedItem(null);
+  };
+
+  const handleScanAnother = () => {
+    setShowCamera(true);
+  };
+
+  const handleViewBookmark = (item: DetectedItem) => {
+    setDetectedItem(item);
+    setShowResults(true);
+    setShowBookmarks(false);
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Scan & Recycle</Text>
-        <Text style={styles.subtitle}>Discover how to recycle any item!</Text>
+        <View style={styles.headerContent}>
+          <View style={styles.headerText}>
+            <Text style={styles.title}>Scan & Recycle</Text>
+            <Text style={styles.subtitle}>Discover how to recycle any item!</Text>
+          </View>
+          <TouchableOpacity 
+            style={styles.bookmarksButton}
+            onPress={() => setShowBookmarks(true)}
+          >
+            <Text style={styles.bookmarksIcon}>🔖</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <View style={styles.content}>
         <View style={styles.scanSection}>
           <TouchableOpacity
-            style={[styles.scanButton, scanning && styles.scanButtonActive]}
+            style={[styles.scanButton, (isProcessing || scanning) && styles.scanButtonActive]}
             onPress={handleScan}
-            disabled={scanning}
+            disabled={isProcessing || scanning}
           >
-            <Text style={styles.scanButtonText}>
-              {scanning ? 'Scanning...' : '📷 Scan Item'}
-            </Text>
+            {isProcessing ? (
+              <View style={styles.processingContainer}>
+                <ActivityIndicator color="white" size="small" />
+                <Text style={styles.scanButtonText}>Processing...</Text>
+              </View>
+            ) : (
+              <Text style={styles.scanButtonText}>
+                {scanning ? 'Scanning...' : '📷 Scan Item'}
+              </Text>
+            )}
           </TouchableOpacity>
           
           <Text style={styles.scanDescription}>
@@ -70,18 +128,22 @@ export default function ExploreScreen() {
         <View style={styles.features}>
           <View style={styles.featureCard}>
             <Text style={styles.featureIcon}>♻️</Text>
-            <Text style={styles.featureTitle}>Recycling Guide</Text>
-            <Text style={styles.featureDescription}>
-              Get official NEA recycling guidelines for any material
-            </Text>
+            <View style={styles.featureContent}>
+              <Text style={styles.featureTitle}>Recycling Guide</Text>
+              <Text style={styles.featureDescription}>
+                Get official NEA recycling guidelines for any material
+              </Text>
+            </View>
           </View>
 
           <View style={styles.featureCard}>
             <Text style={styles.featureIcon}>🌱</Text>
-            <Text style={styles.featureTitle}>Eco Alternatives</Text>
-            <Text style={styles.featureDescription}>
-              Discover sustainable alternatives with lower carbon footprint
-            </Text>
+            <View style={styles.featureContent}>
+              <Text style={styles.featureTitle}>Eco Alternatives</Text>
+              <Text style={styles.featureDescription}>
+                Discover sustainable alternatives with lower carbon footprint
+              </Text>
+            </View>
           </View>
 
           <TouchableOpacity 
@@ -89,10 +151,12 @@ export default function ExploreScreen() {
             onPress={() => setShowMap(!showMap)}
           >
             <Text style={styles.featureIcon}>📍</Text>
-            <Text style={styles.featureTitle}>Bin Locator</Text>
-            <Text style={styles.featureDescription}>
-              Find nearby recycling bins and facilities
-            </Text>
+            <View style={styles.featureContent}>
+              <Text style={styles.featureTitle}>Bin Locator</Text>
+              <Text style={styles.featureDescription}>
+                Find nearby recycling bins and facilities
+              </Text>
+            </View>
           </TouchableOpacity>
         </View>
 
@@ -117,6 +181,28 @@ export default function ExploreScreen() {
           <RecyclingBinMap onClose={() => setShowMap(false)} />
         </View>
       )}
+
+      {/* Camera Scanner */}
+      <CameraScanner
+        visible={showCamera}
+        onClose={() => setShowCamera(false)}
+        onScanComplete={handleScanComplete}
+      />
+
+      {/* Recycling Info Modal */}
+      <RecyclingInfoModal
+        visible={showResults}
+        onClose={handleCloseResults}
+        detectedItem={detectedItem}
+        onScanAnother={handleScanAnother}
+      />
+
+      {/* Bookmarks Modal */}
+      <BookmarksModal
+        visible={showBookmarks}
+        onClose={() => setShowBookmarks(false)}
+        onViewItem={handleViewBookmark}
+      />
     </View>
   );
 }
@@ -132,6 +218,14 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     paddingHorizontal: 20,
   },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerText: {
+    flex: 1,
+  },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
@@ -141,6 +235,15 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.8)',
+  },
+  bookmarksButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    padding: 12,
+    borderRadius: 25,
+    marginLeft: 15,
+  },
+  bookmarksIcon: {
+    fontSize: 20,
   },
   content: {
     flex: 1,
@@ -168,6 +271,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
+  processingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   scanDescription: {
     fontSize: 14,
     color: '#666',
@@ -183,22 +291,26 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 10,
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
   featureIcon: {
     fontSize: 24,
     marginRight: 15,
+    marginTop: 2,
+  },
+  featureContent: {
+    flex: 1,
   },
   featureTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 2,
+    marginBottom: 6,
   },
   featureDescription: {
     fontSize: 12,
     color: '#666',
-    flex: 1,
+    lineHeight: 16,
   },
   stats: {
     backgroundColor: 'white',
