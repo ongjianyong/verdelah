@@ -2,6 +2,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import React, { useState } from 'react';
 import { Alert, Modal, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { uploadProfilePicture } from '../../services/imageUpload';
 
 // Singapore neighborhoods for the challenge
 const SINGAPORE_NEIGHBORHOODS = [
@@ -46,6 +47,7 @@ export default function Profile() {
   const [editingProfilePicture, setEditingProfilePicture] = useState(userData?.profilePicture || '');
   const [showNeighborhoodDropdown, setShowNeighborhoodDropdown] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -121,14 +123,35 @@ export default function Profile() {
     }
 
     try {
+      let profilePictureUrl = editingProfilePicture;
+      
+      // If a new profile picture was selected and it's a local URI, upload it to Firebase Storage
+      if (editingProfilePicture && editingProfilePicture.startsWith('file://') && user?.uid) {
+        setUploading(true);
+        
+        const uploadResult = await uploadProfilePicture(editingProfilePicture, user.uid);
+        
+        if (uploadResult.success && uploadResult.url) {
+          profilePictureUrl = uploadResult.url;
+          console.log('Profile picture uploaded successfully:', uploadResult.url);
+        } else {
+          setUploading(false);
+          Alert.alert('Upload Error', uploadResult.error || 'Failed to upload profile picture');
+          return;
+        }
+        
+        setUploading(false);
+      }
+
       await updateUserData({
         name: editingName.trim(),
         neighborhood: editingNeighborhood,
-        profilePicture: editingProfilePicture,
+        profilePicture: profilePictureUrl,
       });
       setEditModalVisible(false);
       Alert.alert('Success', 'Profile updated successfully!');
     } catch (error) {
+      console.error('Error updating profile:', error);
       Alert.alert('Error', 'Failed to update profile. Please try again.');
     }
   };
@@ -305,10 +328,13 @@ export default function Profile() {
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalButton, styles.saveButton]}
+                style={[styles.modalButton, styles.saveButton, uploading && styles.disabledButton]}
                 onPress={handleSaveProfile}
+                disabled={uploading}
               >
-                <Text style={styles.saveButtonText}>Save</Text>
+                <Text style={styles.saveButtonText}>
+                  {uploading ? 'Uploading...' : 'Save'}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -616,5 +642,9 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 14,
     fontWeight: '500',
+  },
+  disabledButton: {
+    backgroundColor: '#ccc',
+    opacity: 0.6,
   },
 });
