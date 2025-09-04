@@ -76,20 +76,16 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        <View style={styles.statsContainer}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{userData?.ecoPoints || 0}</Text>
-            <Text style={styles.statLabelSingle}>Eco Points</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{userData?.totalRecycled || 0}</Text>
-            <Text style={styles.statLabel}>Items Recycled</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>Level {userData?.level || 1}</Text>
-            <Text style={styles.statLabelSingle}>Current Level</Text>
-          </View>
-        </View>
+                 <View style={styles.statsContainer}>
+           <View style={styles.statCard}>
+             <Text style={styles.statNumber}>{userData?.ecoPoints || 0}</Text>
+             <Text style={styles.statLabel}>Eco Points</Text>
+           </View>
+           <View style={styles.statCard}>
+             <Text style={styles.statNumber}>{userData?.totalRecycled || 0}</Text>
+             <Text style={styles.statLabel}>Items Recycled</Text>
+           </View>
+         </View>
 
         <View style={styles.quickActions}>
           <Text style={styles.sectionTitle}>Quick Actions</Text>
@@ -190,17 +186,11 @@ const styles = StyleSheet.create({
     color: '#2E7D32',
     marginBottom: 5,
   },
-  statLabel: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
-  },
-  statLabelSingle: {
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
-    marginTop: 8,
-  },
+     statLabel: {
+     fontSize: 12,
+     color: '#666',
+     textAlign: 'center',
+   },
   quickActions: {
     marginBottom: 20,
   },

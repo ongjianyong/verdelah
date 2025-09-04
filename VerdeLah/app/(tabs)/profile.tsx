@@ -1,6 +1,6 @@
 import { useAuth } from '@/contexts/AuthContext';
 import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View, Modal, TextInput, ScrollView } from 'react-native';
+import { Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 // Singapore neighborhoods for the challenge
 const SINGAPORE_NEIGHBORHOODS = [
@@ -104,10 +104,6 @@ export default function Profile() {
           <View style={styles.statCard}>
             <Text style={styles.statNumber}>{userData?.totalRecycled || 0}</Text>
             <Text style={styles.statLabel}>Items Recycled</Text>
-          </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>Level {userData?.level || 1}</Text>
-            <Text style={styles.statLabel}>Current Level</Text>
           </View>
         </View>
 
