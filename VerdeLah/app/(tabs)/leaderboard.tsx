@@ -2,7 +2,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLocalSearchParams } from 'expo-router';
 import { collection, getDocs, limit, orderBy, query, where } from 'firebase/firestore';
 import React, { useCallback, useEffect, useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
 import { NeighborhoodLeaderboardService, NeighborhoodStats } from '../../services/neighborhood-leaderboard';
 import { db } from './services/firebase';
 
@@ -11,6 +11,7 @@ interface LeaderboardEntry {
   name: string;
   ecoPoints: number;
   totalRecycled: number;
+  profilePicture?: string;
 }
 
 export default function Leaderboard() {
@@ -111,6 +112,17 @@ export default function Leaderboard() {
           <Text style={[styles.rank, isCurrentUser && styles.currentUserText]}>
             #{index + 1}
           </Text>
+        </View>
+        <View style={styles.profilePictureContainer}>
+          {item.profilePicture ? (
+            <Image source={{ uri: item.profilePicture }} style={styles.profilePicture} />
+          ) : (
+            <View style={styles.defaultProfilePicture}>
+              <Text style={styles.defaultProfileText}>
+                {item.name ? item.name.charAt(0).toUpperCase() : '?'}
+              </Text>
+            </View>
+          )}
         </View>
         <View style={styles.userInfo}>
           <Text style={[styles.userName, isCurrentUser && styles.currentUserText]}>
@@ -336,9 +348,35 @@ const styles = StyleSheet.create({
   currentUserText: {
     color: '#1B5E20',
   },
+  profilePictureContainer: {
+    marginLeft: 10,
+    marginRight: 10,
+  },
+  profilePicture: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#2E7D32',
+  },
+  defaultProfilePicture: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#2E7D32',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#2E7D32',
+  },
+  defaultProfileText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'white',
+  },
   userInfo: {
     flex: 1,
-    marginLeft: 15,
+    marginLeft: 5,
   },
   userName: {
     fontSize: 16,
