@@ -351,6 +351,8 @@ const styles = StyleSheet.create({
   profilePictureContainer: {
     marginLeft: 10,
     marginRight: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   profilePicture: {
     width: 40,
@@ -358,6 +360,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 2,
     borderColor: '#2E7D32',
+    alignSelf: 'center',
   },
   defaultProfilePicture: {
     width: 40,
@@ -368,6 +371,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: '#2E7D32',
+    alignSelf: 'center',
   },
   defaultProfileText: {
     fontSize: 16,

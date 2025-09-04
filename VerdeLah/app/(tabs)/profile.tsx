@@ -2,7 +2,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import React, { useState } from 'react';
 import { Alert, Modal, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { uploadProfilePicture } from '../../services/imageUpload';
 
 // Singapore neighborhoods for the challenge
 const SINGAPORE_NEIGHBORHOODS = [
@@ -47,7 +46,6 @@ export default function Profile() {
   const [editingProfilePicture, setEditingProfilePicture] = useState(userData?.profilePicture || '');
   const [showNeighborhoodDropdown, setShowNeighborhoodDropdown] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
-  const [uploading, setUploading] = useState(false);
 
   const pickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -125,22 +123,13 @@ export default function Profile() {
     try {
       let profilePictureUrl = editingProfilePicture;
       
-      // If a new profile picture was selected and it's a local URI, upload it to Firebase Storage
-      if (editingProfilePicture && editingProfilePicture.startsWith('file://') && user?.uid) {
-        setUploading(true);
-        
-        const uploadResult = await uploadProfilePicture(editingProfilePicture, user.uid);
-        
-        if (uploadResult.success && uploadResult.url) {
-          profilePictureUrl = uploadResult.url;
-          console.log('Profile picture uploaded successfully:', uploadResult.url);
-        } else {
-          setUploading(false);
-          Alert.alert('Upload Error', uploadResult.error || 'Failed to upload profile picture');
-          return;
-        }
-        
-        setUploading(false);
+      // For now, we'll store the local URI directly
+      // TODO: Implement proper image upload to Firebase Storage
+      if (editingProfilePicture && editingProfilePicture.startsWith('file://')) {
+        console.log('Profile picture selected (local URI):', editingProfilePicture);
+        // Store the local URI for now - this will work for the current user
+        // but won't be visible to other users until we implement proper upload
+        profilePictureUrl = editingProfilePicture;
       }
 
       await updateUserData({
@@ -328,13 +317,10 @@ export default function Profile() {
                 <Text style={styles.cancelButtonText}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.modalButton, styles.saveButton, uploading && styles.disabledButton]}
+                style={[styles.modalButton, styles.saveButton]}
                 onPress={handleSaveProfile}
-                disabled={uploading}
               >
-                <Text style={styles.saveButtonText}>
-                  {uploading ? 'Uploading...' : 'Save'}
-                </Text>
+                <Text style={styles.saveButtonText}>Save</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -373,6 +359,8 @@ const styles = StyleSheet.create({
   },
   profilePictureContainer: {
     marginBottom: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   profilePicture: {
     width: 80,
@@ -380,6 +368,7 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     borderWidth: 3,
     borderColor: '#2E7D32',
+    alignSelf: 'center',
   },
   defaultProfilePicture: {
     width: 80,
@@ -390,6 +379,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 3,
     borderColor: '#2E7D32',
+    alignSelf: 'center',
   },
   defaultProfileText: {
     fontSize: 32,
@@ -608,7 +598,7 @@ const styles = StyleSheet.create({
   profilePictureEditContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-start',
   },
   profilePicturePreview: {
     width: 60,
@@ -617,6 +607,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#2E7D32',
     overflow: 'hidden',
+    alignSelf: 'center',
   },
   defaultProfilePicturePreview: {
     width: 60,
@@ -625,6 +616,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2E7D32',
     justifyContent: 'center',
     alignItems: 'center',
+    alignSelf: 'center',
   },
   defaultProfileTextPreview: {
     fontSize: 24,
@@ -642,9 +634,5 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 14,
     fontWeight: '500',
-  },
-  disabledButton: {
-    backgroundColor: '#ccc',
-    opacity: 0.6,
   },
 });
