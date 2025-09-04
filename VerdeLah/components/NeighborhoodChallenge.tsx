@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
-import { NeighborhoodLeaderboardService, NeighborhoodStats } from '../services/neighborhood-leaderboard';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
+import { NeighborhoodLeaderboardService, NeighborhoodStats } from '../services/neighborhood-leaderboard';
 
 interface NeighborhoodChallengeProps {
   onViewLeaderboard?: () => void;
@@ -76,7 +76,11 @@ export default function NeighborhoodChallenge({ onViewLeaderboard }: Neighborhoo
         <Text style={styles.subtitle}>Greenest Neighborhood of the Month</Text>
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView 
+        style={styles.content} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Current Winner */}
         {currentWinner && (
           <View style={styles.winnerCard}>
@@ -187,6 +191,10 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     padding: 20,
+    paddingBottom: 0, // Remove bottom padding from main content
+  },
+  scrollContent: {
+    paddingBottom: 90, // Adjusted to show full button with just a little space below
   },
   loadingContainer: {
     flex: 1,
@@ -198,7 +206,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF8E1',
     padding: 20,
     borderRadius: 15,
-    marginBottom: 20,
+    marginBottom: 15, // Reduced margin to make more room for button visibility
     borderWidth: 2,
     borderColor: '#FFD54F',
   },
@@ -238,7 +246,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     padding: 20,
     borderRadius: 15,
-    marginBottom: 20,
+    marginBottom: 15, // Reduced margin to make more room for button visibility
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -278,7 +286,7 @@ const styles = StyleSheet.create({
   },
   // Top Neighborhoods
   topNeighborhoods: {
-    marginBottom: 20,
+    marginBottom: 10, // Reduced margin to make more room for button visibility
   },
   sectionTitle: {
     fontSize: 18,
@@ -345,7 +353,8 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 20, // Reduced margin for just a little space below button
+    marginTop: 10, // Add some top margin for better spacing
   },
   viewLeaderboardText: {
     color: 'white',
