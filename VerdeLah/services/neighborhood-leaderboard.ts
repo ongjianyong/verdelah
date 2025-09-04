@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../app/(tabs)/services/firebase';
 
 export interface NeighborhoodStats {
@@ -21,6 +21,7 @@ export interface NeighborhoodUser {
 export class NeighborhoodLeaderboardService {
   /**
    * Get all neighborhoods with their aggregated statistics
+   * Note: This method fetches all users and aggregates in memory to avoid Firebase composite index requirements
    */
   static async getNeighborhoodLeaderboard(): Promise<NeighborhoodStats[]> {
     try {
@@ -67,6 +68,11 @@ export class NeighborhoodLeaderboardService {
       return neighborhoods.sort((a, b) => b.averagePoints - a.averagePoints);
     } catch (error) {
       console.error('Error fetching neighborhood leaderboard:', error);
+      // Provide more specific error information for Firebase index issues
+      if (error instanceof Error && error.message.includes('index')) {
+        console.error('Firebase index error detected. This may require creating a composite index in the Firebase Console.');
+        console.error('Required index: Collection: users, Fields: neighborhood (Ascending), ecoPoints (Descending)');
+      }
       throw error;
     }
   }
@@ -77,27 +83,33 @@ export class NeighborhoodLeaderboardService {
   static async getNeighborhoodTopUsers(neighborhood: string, limit: number = 10): Promise<NeighborhoodUser[]> {
     try {
       const usersRef = collection(db, 'users');
+      // First get all users in the neighborhood, then sort in memory to avoid composite index requirement
       const q = query(
         usersRef,
-        where('neighborhood', '==', neighborhood),
-        orderBy('ecoPoints', 'desc')
+        where('neighborhood', '==', neighborhood)
       );
       
       const querySnapshot = await getDocs(q);
       const users: NeighborhoodUser[] = [];
       
       querySnapshot.forEach((doc) => {
-        if (users.length < limit) {
-          users.push({
-            id: doc.id,
-            ...doc.data(),
-          } as NeighborhoodUser);
-        }
+        users.push({
+          id: doc.id,
+          ...doc.data(),
+        } as NeighborhoodUser);
       });
       
-      return users;
+      // Sort by ecoPoints in memory and limit results
+      return users
+        .sort((a, b) => b.ecoPoints - a.ecoPoints)
+        .slice(0, limit);
     } catch (error) {
       console.error('Error fetching neighborhood users:', error);
+      // Provide more specific error information for Firebase index issues
+      if (error instanceof Error && error.message.includes('index')) {
+        console.error('Firebase index error detected. This may require creating a composite index in the Firebase Console.');
+        console.error('Required index: Collection: users, Fields: neighborhood (Ascending), ecoPoints (Descending)');
+      }
       throw error;
     }
   }
@@ -124,12 +136,13 @@ export class NeighborhoodLeaderboardService {
     neighborhood: string;
   } | null> {
     try {
-      const usersRef = collection(db, 'users');
-      const userDoc = await getDocs(query(usersRef, where('__name__', '==', userId)));
+      // Use doc() instead of query with __name__ to get a specific user document
+      const userRef = doc(db, 'users', userId);
+      const userDoc = await getDoc(userRef);
       
-      if (userDoc.empty) return null;
+      if (!userDoc.exists()) return null;
       
-      const userData = userDoc.docs[0].data();
+      const userData = userDoc.data();
       const neighborhood = userData.neighborhood;
       
       if (!neighborhood) return null;
@@ -146,6 +159,11 @@ export class NeighborhoodLeaderboardService {
       };
     } catch (error) {
       console.error('Error fetching user neighborhood rank:', error);
+      // Provide more specific error information for Firebase index issues
+      if (error instanceof Error && error.message.includes('index')) {
+        console.error('Firebase index error detected. This may require creating a composite index in the Firebase Console.');
+        console.error('Required index: Collection: users, Fields: neighborhood (Ascending), ecoPoints (Descending)');
+      }
       throw error;
     }
   }
