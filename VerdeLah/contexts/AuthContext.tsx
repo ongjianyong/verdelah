@@ -12,6 +12,7 @@ interface UserData {
   joinDate: string;
   level: number;
   neighborhood: string;
+  profilePicture?: string;
 }
 
 interface AuthContextType {
