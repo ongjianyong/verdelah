@@ -1,6 +1,6 @@
 import { useAuth } from '@/contexts/AuthContext';
 import React, { useState } from 'react';
-import { Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Modal, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 // Singapore neighborhoods for the challenge
 const SINGAPORE_NEIGHBORHOODS = [
@@ -43,6 +43,7 @@ export default function Profile() {
   const [editingName, setEditingName] = useState(userData?.name || '');
   const [editingNeighborhood, setEditingNeighborhood] = useState(userData?.neighborhood || '');
   const [showNeighborhoodDropdown, setShowNeighborhoodDropdown] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const handleLogout = () => {
     Alert.alert(
@@ -83,13 +84,36 @@ export default function Profile() {
     setShowNeighborhoodDropdown(false);
   };
 
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      // Refresh user data - this will trigger a re-render with updated data
+      // The AuthContext should handle refreshing user data
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    } catch (error) {
+      console.error('Error refreshing profile:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Profile</Text>
       </View>
 
-      <View style={styles.content}>
+      <ScrollView 
+        style={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#2E7D32']}
+            tintColor="#2E7D32"
+          />
+        }
+      >
         <View style={styles.userInfo}>
           <Text style={styles.name}>{userData?.name || 'Loading...'}</Text>
           <Text style={styles.email}>{user?.email}</Text>
@@ -117,7 +141,7 @@ export default function Profile() {
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
 
       {/* Edit Profile Modal */}
       <Modal

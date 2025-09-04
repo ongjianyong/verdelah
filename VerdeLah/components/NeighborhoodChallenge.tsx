@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { NeighborhoodLeaderboardService, NeighborhoodStats } from '../services/neighborhood-leaderboard';
 
@@ -17,6 +17,7 @@ export default function NeighborhoodChallenge({ onViewLeaderboard }: Neighborhoo
   } | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentWinner, setCurrentWinner] = useState<NeighborhoodStats | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     fetchNeighborhoodData();
@@ -55,6 +56,17 @@ export default function NeighborhoodChallenge({ onViewLeaderboard }: Neighborhoo
     return neighborhoodStats.findIndex(hood => hood.name === userNeighborhoodRank.neighborhood) + 1;
   };
 
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await fetchNeighborhoodData();
+    } catch (error) {
+      console.error('Error refreshing challenge data:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -80,6 +92,14 @@ export default function NeighborhoodChallenge({ onViewLeaderboard }: Neighborhoo
         style={styles.content} 
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#2E7D32']}
+            tintColor="#2E7D32"
+          />
+        }
       >
         {/* Current Winner */}
         {currentWinner && (
@@ -106,7 +126,7 @@ export default function NeighborhoodChallenge({ onViewLeaderboard }: Neighborhoo
         {/* User's Neighborhood Status */}
         {userData?.neighborhood && getUserNeighborhoodStats() && (
           <View style={styles.userNeighborhoodCard}>
-            <Text style={styles.userNeighborhoodTitle}>📍 Your Neighborhood: {userData.neighborhood}</Text>
+            <Text style={styles.userNeighborhoodTitle}>📍 {userData.neighborhood}</Text>
             <View style={styles.userNeighborhoodStats}>
               <View style={styles.userNeighborhoodStat}>
                 <Text style={styles.userNeighborhoodStatNumber}>
@@ -129,8 +149,7 @@ export default function NeighborhoodChallenge({ onViewLeaderboard }: Neighborhoo
             </View>
             {userNeighborhoodRank && (
               <Text style={styles.userRankText}>
-                You're #{userNeighborhoodRank.rank} in {userData.neighborhood} 
-                ({userNeighborhoodRank.totalUsers} members)
+                #{userNeighborhoodRank.rank} of {userNeighborhoodRank.totalUsers} members
               </Text>
             )}
           </View>

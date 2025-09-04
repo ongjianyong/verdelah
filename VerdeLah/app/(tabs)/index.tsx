@@ -2,7 +2,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ECO_TIPS } from './services/ecotips';
 import { testFirebaseConnections } from './services/firebase-test';
 
@@ -16,6 +16,7 @@ function getRandomTips(count = 3) {
 export default function HomeScreen() {
   const { userData } = useAuth();
   const [tips, setTips] = useState(getRandomTips());
+  const [refreshing, setRefreshing] = useState(false);
 
 
   useFocusEffect(
@@ -23,6 +24,26 @@ export default function HomeScreen() {
       setTips(getRandomTips());
     }, [])
   );
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      // Refresh tips
+      setTips(getRandomTips());
+      
+      // Test Firebase connections
+      const result = await testFirebaseConnections();
+      if (result.success) {
+        console.log('Firebase test passed on refresh:', result.message);
+      } else {
+        console.error('Firebase test failed on refresh:', result.error);
+      }
+    } catch (error) {
+      console.error('Error during refresh:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
 
 
  
@@ -75,6 +96,14 @@ export default function HomeScreen() {
         style={styles.content} 
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#2E7D32']} // Android
+            tintColor="#2E7D32" // iOS
+          />
+        }
       >
                  <View style={styles.statsContainer}>
            <View style={styles.statCard}>
@@ -103,24 +132,6 @@ export default function HomeScreen() {
             </TouchableOpacity>
           ))}
         </View>
-
-        {/* Neighborhood Challenge Section */}
-        {userData?.neighborhood && (
-          <View style={styles.challengeSection}>
-            <Text style={styles.sectionTitle}>🏆 Neighborhood Challenge</Text>
-            <View style={styles.challengePreview}>
-              <Text style={styles.challengeText}>
-                Compete with {userData.neighborhood} for the title of &ldquo;Greenest Neighborhood of the Month&rdquo;!
-              </Text>
-              <TouchableOpacity
-                style={styles.challengeButton}
-                onPress={() => router.push('/(tabs)/neighborhood-challenge')}
-              >
-                <Text style={styles.challengeButtonText}>Join Challenge</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
 
         <View style={styles.tipsContainer}>
           <Text style={styles.sectionTitle}>💡 Eco Tips</Text>
@@ -192,7 +203,7 @@ const styles = StyleSheet.create({
      textAlign: 'center',
    },
   quickActions: {
-    marginBottom: 20,
+    marginBottom: 15,
   },
   sectionTitle: {
     fontSize: 18,
@@ -231,13 +242,13 @@ const styles = StyleSheet.create({
     color: '#666',
   },
   tipsContainer: {
-    marginBottom: 20,
+    marginBottom: 15,
   },
   tipCard: {
     backgroundColor: 'white',
-    padding: 15,
+    padding: 12,
     borderRadius: 10,
-    marginBottom: 10,
+    marginBottom: 8,
     elevation: 1,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
@@ -245,43 +256,8 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
   },
   tipText: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#333',
-    lineHeight: 20,
-  },
-  challengeSection: {
-    backgroundColor: 'white',
-    padding: 20,
-    paddingBottom: 15,
-    borderRadius: 10,
-    marginBottom: 25,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  challengePreview: {
-    paddingTop: 5,
-    paddingBottom: 5,
-  },
-  challengeText: {
-    fontSize: 16,
-    color: '#333',
-    lineHeight: 22,
-    marginBottom: 20,
-  },
-  challengeButton: {
-    backgroundColor: '#2E7D32',
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  challengeButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
+    lineHeight: 18,
   },
 });

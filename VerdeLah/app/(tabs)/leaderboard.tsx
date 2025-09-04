@@ -2,7 +2,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLocalSearchParams } from 'expo-router';
 import { collection, getDocs, limit, orderBy, query, where } from 'firebase/firestore';
 import React, { useCallback, useEffect, useState } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { NeighborhoodLeaderboardService, NeighborhoodStats } from '../../services/neighborhood-leaderboard';
 import { db } from './services/firebase';
 
@@ -22,6 +22,7 @@ export default function Leaderboard() {
   const [selectedTab, setSelectedTab] = useState<'points' | 'neighborhood-users' | 'neighborhood'>(
     params.tab === 'neighborhood' ? 'neighborhood' : 'points'
   );
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchLeaderboard = useCallback(async () => {
     try {
@@ -86,6 +87,17 @@ export default function Leaderboard() {
     }
   }, [selectedTab, userData?.neighborhood]);
 
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await fetchLeaderboard();
+    } catch (error) {
+      console.error('Error refreshing leaderboard:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchLeaderboard]);
+
   useEffect(() => {
     fetchLeaderboard();
   }, [fetchLeaderboard]);
@@ -111,7 +123,6 @@ export default function Leaderboard() {
             }
           </Text>
         </View>
-        {isCurrentUser && <Text style={styles.youLabel}>YOU</Text>}
       </View>
     );
   };
@@ -140,7 +151,6 @@ export default function Leaderboard() {
           </Text>
           <Text style={styles.scoreLabel}>pts</Text>
         </View>
-        {isCurrentUserNeighborhood && <Text style={styles.youLabel}>YOURS</Text>}
       </View>
     );
   };
@@ -198,6 +208,14 @@ export default function Leaderboard() {
             keyExtractor={(item) => item.name}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContainer}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={['#2E7D32']}
+                tintColor="#2E7D32"
+              />
+            }
           />
         ) : selectedTab === 'neighborhood-users' && (!userData?.neighborhood || leaderboard.length === 0) ? (
           <View style={styles.emptyContainer}>
@@ -215,6 +233,14 @@ export default function Leaderboard() {
             keyExtractor={(item) => item.id}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContainer}
+            refreshControl={
+              <RefreshControl
+                refreshing={refreshing}
+                onRefresh={onRefresh}
+                colors={['#2E7D32']}
+                tintColor="#2E7D32"
+              />
+            }
           />
         )}
       </View>
@@ -323,15 +349,6 @@ const styles = StyleSheet.create({
   userStats: {
     fontSize: 12,
     color: '#666',
-  },
-  youLabel: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#2E7D32',
-    backgroundColor: '#C8E6C9',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
   },
   neighborhoodScore: {
     alignItems: 'center',

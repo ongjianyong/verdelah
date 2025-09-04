@@ -3,12 +3,12 @@ import { useMap } from '@/contexts/MapContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { router, useLocalSearchParams } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, StyleSheet, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
-import RecyclingBinMap from '../../components/RecyclingBinMap';
-import CameraScanner from '../../components/CameraScanner';
-import RecyclingInfoModal from '../../components/RecyclingInfoModal';
+import { ActivityIndicator, Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import BookmarksModal from '../../components/BookmarksModal';
-import { detectItem, DetectedItem } from '../../services/itemDetection';
+import CameraScanner from '../../components/CameraScanner';
+import RecyclingBinMap from '../../components/RecyclingBinMap';
+import RecyclingInfoModal from '../../components/RecyclingInfoModal';
+import { DetectedItem, detectItem } from '../../services/itemDetection';
 
 export default function ExploreScreen() {
   const { userData } = useAuth();
@@ -21,6 +21,7 @@ export default function ExploreScreen() {
   const [detectedItem, setDetectedItem] = useState<DetectedItem | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [showBookmarks, setShowBookmarks] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Update map context when showMap changes
   useEffect(() => {
@@ -38,6 +39,19 @@ export default function ExploreScreen() {
       }
     }, [openMap])
   );
+
+  const onRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      // Refresh any data that might need updating
+      // For now, just simulate a refresh delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    } catch (error) {
+      console.error('Error refreshing explore page:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, []);
 
   const handleScan = () => {
     setShowCamera(true);
@@ -101,7 +115,17 @@ export default function ExploreScreen() {
         </View>
       </View>
 
-      <View style={styles.content}>
+      <ScrollView 
+        style={styles.content}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#2E7D32']}
+            tintColor="#2E7D32"
+          />
+        }
+      >
         <View style={styles.scanSection}>
           <TouchableOpacity
             style={[styles.scanButton, (isProcessing || scanning) && styles.scanButtonActive]}
@@ -173,7 +197,7 @@ export default function ExploreScreen() {
             </View>
           </View>
         </View>
-      </View>
+      </ScrollView>
 
       {/* Map View */}
       {showMap && (
