@@ -1,6 +1,7 @@
 import { collection, doc, getDoc, getDocs, orderBy, query, where } from 'firebase/firestore';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   StyleSheet,
   Text,
@@ -32,14 +33,7 @@ export default function BinLeaderboard({ bin, onClose, visible = true }: BinLead
     totalUsers: 0,
   });
 
-  useEffect(() => {
-    if (visible && bin.id) {
-      console.log('🔄 BinLeaderboard useEffect triggered:', { visible, binId: bin.id });
-      loadBinLeaderboard();
-    }
-  }, [bin.id, visible]);
-
-  const loadBinLeaderboard = async () => {
+  const loadBinLeaderboard = useCallback(async () => {
     try {
       console.log('📊 Loading leaderboard for bin:', bin.id);
       setLoading(true);
@@ -134,7 +128,14 @@ export default function BinLeaderboard({ bin, onClose, visible = true }: BinLead
     } finally {
       setLoading(false);
     }
-  };
+  }, [bin.id]);
+
+  useEffect(() => {
+    if (visible && bin.id) {
+      console.log('🔄 BinLeaderboard useEffect triggered:', { visible, binId: bin.id });
+      loadBinLeaderboard();
+    }
+  }, [bin.id, visible, loadBinLeaderboard]);
 
   const formatDate = (timestamp: any) => {
     if (!timestamp) return 'Unknown';
@@ -199,7 +200,12 @@ export default function BinLeaderboard({ bin, onClose, visible = true }: BinLead
           </View>
         </View>
 
-        {leaderboard.length > 0 ? (
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#2E7D32" />
+            <Text style={styles.loadingText}>Loading leaderboard...</Text>
+          </View>
+        ) : leaderboard.length > 0 ? (
           <FlatList
             data={leaderboard}
             renderItem={renderLeaderboardItem}
@@ -211,7 +217,7 @@ export default function BinLeaderboard({ bin, onClose, visible = true }: BinLead
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>No Recycling Data Yet</Text>
             <Text style={styles.emptySubtext}>
-              This bin hasn't been used for recycling yet.
+              This bin hasn&apos;t been used for recycling yet.
             </Text>
             <Text style={styles.emptySubtext}>
               Be the first to recycle here and earn points!
@@ -368,5 +374,18 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
     marginBottom: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 40,
+    backgroundColor: '#f8f9fa',
+  },
+  loadingText: {
+    fontSize: 16,
+    color: '#6c757d',
+    marginTop: 16,
+    fontWeight: '500',
   },
 });

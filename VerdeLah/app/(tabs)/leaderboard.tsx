@@ -1,10 +1,10 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { useLocalSearchParams } from 'expo-router';
 import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore';
 import React, { useCallback, useEffect, useState } from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { db } from './services/firebase';
 import { NeighborhoodLeaderboardService, NeighborhoodStats } from '../../services/neighborhood-leaderboard';
-import { useLocalSearchParams } from 'expo-router';
+import { db } from './services/firebase';
 
 interface LeaderboardEntry {
   id: string;
@@ -156,11 +156,19 @@ export default function Leaderboard() {
           <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}>Loading leaderboard...</Text>
           </View>
+        ) : selectedTab === 'neighborhood' ? (
+          <FlatList
+            data={neighborhoodLeaderboard}
+            renderItem={renderNeighborhoodItem}
+            keyExtractor={(item) => item.name}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listContainer}
+          />
         ) : (
           <FlatList
-            data={selectedTab === 'neighborhood' ? neighborhoodLeaderboard : leaderboard}
-            renderItem={selectedTab === 'neighborhood' ? renderNeighborhoodItem : renderLeaderboardItem}
-            keyExtractor={(item) => selectedTab === 'neighborhood' ? item.name : item.id}
+            data={leaderboard}
+            renderItem={renderLeaderboardItem}
+            keyExtractor={(item) => item.id}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContainer}
           />
