@@ -1,7 +1,6 @@
 import { useAuth } from '@/contexts/AuthContext';
 import React, { useState } from 'react';
-import { Alert, Modal, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Image } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
+import { Alert, Modal, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 // Singapore neighborhoods for the challenge
 const SINGAPORE_NEIGHBORHOODS = [
@@ -43,60 +42,9 @@ export default function Profile() {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingName, setEditingName] = useState(userData?.name || '');
   const [editingNeighborhood, setEditingNeighborhood] = useState(userData?.neighborhood || '');
-  const [editingProfilePicture, setEditingProfilePicture] = useState(userData?.profilePicture || '');
   const [showNeighborhoodDropdown, setShowNeighborhoodDropdown] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
-  const pickImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    
-    if (permissionResult.granted === false) {
-      Alert.alert('Permission Required', 'Permission to access camera roll is required!');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-
-    if (!result.canceled) {
-      setEditingProfilePicture(result.assets[0].uri);
-    }
-  };
-
-  const takePhoto = async () => {
-    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
-    
-    if (permissionResult.granted === false) {
-      Alert.alert('Permission Required', 'Permission to access camera is required!');
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-
-    if (!result.canceled) {
-      setEditingProfilePicture(result.assets[0].uri);
-    }
-  };
-
-  const showImagePicker = () => {
-    Alert.alert(
-      'Select Profile Picture',
-      'Choose how you want to add your profile picture',
-      [
-        { text: 'Camera', onPress: takePhoto },
-        { text: 'Photo Library', onPress: pickImage },
-        { text: 'Cancel', style: 'cancel' },
-      ]
-    );
-  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -121,21 +69,9 @@ export default function Profile() {
     }
 
     try {
-      let profilePictureUrl = editingProfilePicture;
-      
-      // For now, we'll store the local URI directly
-      // TODO: Implement proper image upload to Firebase Storage
-      if (editingProfilePicture && editingProfilePicture.startsWith('file://')) {
-        console.log('Profile picture selected (local URI):', editingProfilePicture);
-        // Store the local URI for now - this will work for the current user
-        // but won't be visible to other users until we implement proper upload
-        profilePictureUrl = editingProfilePicture;
-      }
-
       await updateUserData({
         name: editingName.trim(),
         neighborhood: editingNeighborhood,
-        profilePicture: profilePictureUrl,
       });
       setEditModalVisible(false);
       Alert.alert('Success', 'Profile updated successfully!');
@@ -181,17 +117,6 @@ export default function Profile() {
         }
       >
         <View style={styles.userInfo}>
-          <View style={styles.profilePictureContainer}>
-            {userData?.profilePicture ? (
-              <Image source={{ uri: userData.profilePicture }} style={styles.profilePicture} />
-            ) : (
-              <View style={styles.defaultProfilePicture}>
-                <Text style={styles.defaultProfileText}>
-                  {userData?.name ? userData.name.charAt(0).toUpperCase() : '?'}
-                </Text>
-              </View>
-            )}
-          </View>
           <Text style={styles.name}>{userData?.name || 'Loading...'}</Text>
           <Text style={styles.email}>{user?.email}</Text>
           <Text style={styles.neighborhood}>📍 {userData?.neighborhood || 'No neighborhood set'}</Text>
@@ -213,7 +138,6 @@ export default function Profile() {
           onPress={() => {
             setEditingName(userData?.name || '');
             setEditingNeighborhood(userData?.neighborhood || '');
-            setEditingProfilePicture(userData?.profilePicture || '');
             setEditModalVisible(true);
           }}
         >
@@ -247,25 +171,6 @@ export default function Profile() {
               />
             </View>
 
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Profile Picture</Text>
-              <View style={styles.profilePictureEditContainer}>
-                <View style={styles.profilePicturePreview}>
-                  {editingProfilePicture ? (
-                    <Image source={{ uri: editingProfilePicture }} style={styles.profilePicturePreview} />
-                  ) : (
-                    <View style={styles.defaultProfilePicturePreview}>
-                      <Text style={styles.defaultProfileTextPreview}>
-                        {editingName ? editingName.charAt(0).toUpperCase() : '?'}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-                <TouchableOpacity style={styles.changePictureButton} onPress={showImagePicker}>
-                  <Text style={styles.changePictureButtonText}>Change Picture</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
 
             <View style={styles.inputContainer}>
               <Text style={styles.inputLabel}>Neighborhood</Text>
@@ -356,35 +261,6 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 20,
     alignItems: 'center',
-  },
-  profilePictureContainer: {
-    marginBottom: 15,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  profilePicture: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    borderWidth: 3,
-    borderColor: '#2E7D32',
-    alignSelf: 'center',
-  },
-  defaultProfilePicture: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#2E7D32',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 3,
-    borderColor: '#2E7D32',
-    alignSelf: 'center',
-  },
-  defaultProfileText: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    color: 'white',
   },
   name: {
     fontSize: 20,
@@ -593,46 +469,5 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
-  },
-  // Profile picture edit styles
-  profilePictureEditContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-  },
-  profilePicturePreview: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: '#2E7D32',
-    overflow: 'hidden',
-    alignSelf: 'center',
-  },
-  defaultProfilePicturePreview: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#2E7D32',
-    justifyContent: 'center',
-    alignItems: 'center',
-    alignSelf: 'center',
-  },
-  defaultProfileTextPreview: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  changePictureButton: {
-    backgroundColor: '#2E7D32',
-    paddingHorizontal: 15,
-    paddingVertical: 10,
-    borderRadius: 8,
-    marginLeft: 15,
-  },
-  changePictureButtonText: {
-    color: 'white',
-    fontSize: 14,
-    fontWeight: '500',
   },
 });

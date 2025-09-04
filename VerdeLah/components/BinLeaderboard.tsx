@@ -6,8 +6,7 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
-  Image
+  View
 } from 'react-native';
 import { db } from '../app/(tabs)/services/firebase';
 import { RecyclingBin } from '../services/geojson-loader';
@@ -24,7 +23,6 @@ interface LeaderboardEntry {
   totalRecycled: number;
   lastRecycledAt: any;
   ecoPoints: number;
-  profilePicture?: string;
 }
 
 export default function BinLeaderboard({ bin, onClose, visible = true }: BinLeaderboardProps) {
@@ -99,7 +97,6 @@ export default function BinLeaderboard({ bin, onClose, visible = true }: BinLead
                 totalRecycled,
                 lastRecycledAt,
                 ecoPoints,
-                profilePicture: userData.profilePicture,
               });
             }
           } catch (error) {
@@ -160,17 +157,6 @@ export default function BinLeaderboard({ bin, onClose, visible = true }: BinLead
       <View style={styles.leaderboardItem}>
         <View style={styles.rankContainer}>
           <Text style={styles.rankText}>{getRankIcon(index)}</Text>
-        </View>
-        <View style={styles.profilePictureContainer}>
-          {item.profilePicture ? (
-            <Image source={{ uri: item.profilePicture }} style={styles.profilePicture} />
-          ) : (
-            <View style={styles.defaultProfilePicture}>
-              <Text style={styles.defaultProfileText}>
-                {item.userName ? item.userName.charAt(0).toUpperCase() : '?'}
-              </Text>
-            </View>
-          )}
         </View>
         <View style={styles.userInfo}>
           <Text style={styles.userName}>{item.userName}</Text>
@@ -345,39 +331,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
   },
-  profilePictureContainer: {
-    marginLeft: 10,
-    marginRight: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  profilePicture: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: 2,
-    borderColor: '#2E7D32',
-    alignSelf: 'center',
-  },
-  defaultProfilePicture: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#2E7D32',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#2E7D32',
-    alignSelf: 'center',
-  },
-  defaultProfileText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: 'white',
-  },
   userInfo: {
     flex: 1,
-    marginLeft: 5,
+    marginLeft: 20,
   },
   userName: {
     fontSize: 16,
