@@ -1,7 +1,35 @@
 // AWS Rekognition Service
 // This service handles image analysis using AWS Rekognition
 
-import { DetectLabelsCommand, RekognitionClient } from '@aws-sdk/client-rekognition';
+let DetectLabelsCommand: any;
+let RekognitionClient: any;
+
+// Dynamic import to handle potential AWS SDK issues
+let awsSdkAvailable = false;
+
+// Try to load AWS SDK
+const awsSdk = require('@aws-sdk/client-rekognition');
+console.log('AWS SDK loaded, checking classes...');
+console.log('DetectLabelsCommand:', typeof awsSdk.DetectLabelsCommand);
+console.log('RekognitionClient:', typeof awsSdk.RekognitionClient);
+
+if (awsSdk.DetectLabelsCommand && awsSdk.RekognitionClient) {
+  DetectLabelsCommand = awsSdk.DetectLabelsCommand;
+  RekognitionClient = awsSdk.RekognitionClient;
+  awsSdkAvailable = true;
+  console.log('AWS SDK classes loaded successfully, awsSdkAvailable set to:', awsSdkAvailable);
+} else {
+  console.error('AWS SDK classes not properly loaded - DetectLabelsCommand:', !!awsSdk.DetectLabelsCommand, 'RekognitionClient:', !!awsSdk.RekognitionClient);
+  // Fallback implementations
+  DetectLabelsCommand = class { constructor() {} };
+  RekognitionClient = class { 
+    constructor() {} 
+    send() { 
+      throw new Error('AWS SDK not available'); 
+    } 
+  };
+}
+
 import { getCredentials, AWS_REGION } from './awsConfig';
 
 export interface RekognitionLabel {
@@ -27,14 +55,41 @@ export interface RekognitionResult {
  */
 export async function analyzeImageWithRekognition(imageUri: string): Promise<RekognitionResult> {
   try {
+    console.log('Starting AWS Rekognition analysis...');
+    console.log('awsSdkAvailable:', awsSdkAvailable);
+    console.log('DetectLabelsCommand type:', typeof DetectLabelsCommand);
+    console.log('RekognitionClient type:', typeof RekognitionClient);
+    
+    // Check if AWS SDK is available - be more lenient with the check
+    if (!DetectLabelsCommand || !RekognitionClient) {
+      throw new Error('AWS SDK classes not available - DetectLabelsCommand: ' + typeof DetectLabelsCommand + ', RekognitionClient: ' + typeof RekognitionClient);
+    }
+    
+    // Additional check for the send method
+    if (typeof RekognitionClient.prototype.send !== 'function') {
+      console.warn('RekognitionClient does not have send method on prototype, but continuing...');
+    }
+    
     // Convert image URI to base64 if needed
+    console.log('Converting image to bytes...');
     const imageBytes = await convertImageToBytes(imageUri);
+    console.log('Image bytes length:', imageBytes.length);
     
     // Create Rekognition client with credentials
+    console.log('Creating Rekognition client...');
     const rekognitionClient = new RekognitionClient({
       region: AWS_REGION,
       credentials: getCredentials(),
     });
+    
+    console.log('Rekognition client created:', typeof rekognitionClient);
+    console.log('Rekognition client send method:', typeof rekognitionClient.send);
+    
+    // Verify the client has the send method
+    if (typeof rekognitionClient.send !== 'function') {
+      console.error('RekognitionClient does not have send method - type: ' + typeof rekognitionClient.send);
+      throw new Error('RekognitionClient does not have send method - type: ' + typeof rekognitionClient.send);
+    }
     
     const command = new DetectLabelsCommand({
       Image: {
@@ -44,18 +99,21 @@ export async function analyzeImageWithRekognition(imageUri: string): Promise<Rek
       MinConfidence: 50, // Minimum confidence threshold
     });
 
+    console.log('Sending command to AWS Rekognition...');
     const response = await rekognitionClient.send(command);
+    console.log('AWS Rekognition response received:', response);
     
     return {
       labels: response.Labels || [],
-      dominantColors: response.Labels?.map(label => ({
+      dominantColors: response.Labels?.map((label: any) => ({
         name: label.Name || '',
         confidence: label.Confidence || 0,
       })) || [],
     };
   } catch (error) {
     console.error('AWS Rekognition error:', error);
-    throw new Error('Failed to analyze image with AWS Rekognition');
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new Error('Failed to analyze image with AWS Rekognition: ' + errorMessage);
   }
 }
 
@@ -103,8 +161,15 @@ async function convertImageToBytes(imageUri: string): Promise<Uint8Array> {
  * @returns Array of relevant labels
  */
 export function getRelevantLabels(labels: RekognitionLabel[]): RekognitionLabel[] {
-  // Keywords that are relevant for recycling detection
+  // Check if labels is valid
+  if (!labels || !Array.isArray(labels)) {
+    console.warn('getRelevantLabels called with invalid labels:', labels);
+    return [];
+  }
+  
+  // Keywords that are relevant for recycling detection and eco-friendly items
   const relevantKeywords = [
+    // Traditional recyclable items
     'bottle', 'can', 'container', 'package', 'box', 'bag', 'cup', 'glass',
     'plastic', 'metal', 'paper', 'cardboard', 'aluminum', 'steel', 'tin',
     'beverage', 'food', 'drink', 'water', 'soda', 'beer', 'wine',
@@ -113,10 +178,32 @@ export function getRelevantLabels(labels: RekognitionLabel[]): RekognitionLabel[
     'electronics', 'phone', 'computer', 'battery', 'cable', 'wire',
     'clothing', 'fabric', 'textile', 'shoe', 'hat', 'bag',
     'furniture', 'wood', 'chair', 'table', 'desk', 'shelf',
-    'toy', 'game', 'book', 'magazine', 'newspaper', 'document'
+    'toy', 'game', 'book', 'magazine', 'newspaper', 'document',
+    'spectacles', 'glasses', 'eyeglasses', 'jar', 'cardboard', 'box',
+    'tin', 'can', 'tire', 'rubber', 'paint', 'battery', 'ceramic',
+    'plate', 'dish', 'bowl', 'styrofoam', 'polystyrene',
+    // Eco-friendly items
+    'reusable', 'stainless', 'steel', 'bamboo', 'canvas', 'tote',
+    'ceramic', 'mug', 'tumbler', 'utensils', 'cutlery', 'fork', 'spoon', 'knife',
+    'solar', 'powered', 'eco', 'friendly', 'sustainable', 'green',
+    'compostable', 'biodegradable', 'organic', 'natural', 'plant',
+    'hemp', 'cotton', 'organic', 'recycled', 'upcycled',
+    // Reusable plastic items
+    'bottle', 'container', 'tumbler', 'mug', 'cup', 'drinkware',
+    'sports', 'gym', 'fitness', 'hydration', 'water', 'drink',
+    // Additional eco-friendly items
+    'cloth', 'napkin', 'bag', 'shopping', 'toothbrush', 'charger',
+    'compost', 'bin', 'led', 'light', 'bulb', 'notebook', 'coffee',
+    'straw', 'metal', 'clothing', 'trash', 'bicycle', 'electric',
+    'panels', 'beeswax', 'wraps', 'glass', 'jars', 'wool', 'dryer',
+    'balls', 'hand', 'crank', 'flashlight', 'detergent', 'plant',
+    'based', 'produce', 'fruits', 'vegetables', 'refrigerator',
+    'energy', 'efficient', 'laundry', 'powder', 'secondhand', 'books',
+    'phone', 'case', 'rainwater', 'barrel', 'wooden', 'comb', 'soap',
+    'appliances', 'media', 'electronics'
   ];
 
-  return labels.filter(label => {
+  return labels.filter((label: any) => {
     const name = label.Name.toLowerCase();
     return relevantKeywords.some(keyword => name.includes(keyword));
   });
@@ -129,16 +216,32 @@ export function getRelevantLabels(labels: RekognitionLabel[]): RekognitionLabel[
  */
 export function extractMaterialType(labels: RekognitionLabel[]): string {
   const materialKeywords = {
-    'plastic': ['plastic', 'bottle', 'container', 'bag', 'cup', 'lid'],
+    'plastic': ['plastic', 'bottle', 'container', 'bag', 'cup', 'lid', 'tumbler', 'mug', 'drinkware', 'styrofoam', 'polystyrene'],
     'glass': ['glass', 'bottle', 'jar', 'container'],
-    'metal': ['metal', 'aluminum', 'steel', 'tin', 'can', 'container'],
-    'paper': ['paper', 'cardboard', 'box', 'newspaper', 'magazine', 'book'],
-    'fabric': ['fabric', 'textile', 'clothing', 'cloth', 'cotton', 'wool'],
-    'wood': ['wood', 'wooden', 'furniture', 'chair', 'table', 'desk'],
-    'electronics': ['electronics', 'phone', 'computer', 'battery', 'cable'],
-    'ceramic': ['ceramic', 'pottery', 'dish', 'plate', 'bowl'],
-    'rubber': ['rubber', 'tire', 'shoe', 'boot'],
-    'foam': ['foam', 'styrofoam', 'polystyrene', 'cushion']
+    'metal': ['metal', 'aluminum', 'steel', 'tin', 'can', 'container', 'stainless'],
+    'paper': ['paper', 'cardboard', 'box', 'newspaper', 'magazine', 'book', 'notebook'],
+    'fabric': ['fabric', 'textile', 'clothing', 'cloth', 'cotton', 'wool', 'canvas', 'tote', 'napkin', 'organic'],
+    'wood': ['wood', 'wooden', 'furniture', 'chair', 'table', 'desk', 'bamboo', 'comb'],
+    'electronics': ['electronics', 'phone', 'computer', 'battery', 'cable', 'charger', 'flashlight', 'led', 'light', 'bulb'],
+    'ceramic': ['ceramic', 'pottery', 'dish', 'plate', 'bowl', 'mug', 'container'],
+    'rubber': ['rubber', 'tire', 'shoe', 'boot', 'wheel'],
+    'foam': ['foam', 'styrofoam', 'polystyrene', 'cushion'],
+    'tin': ['tin', 'can', 'container'],
+    'cardboard': ['cardboard', 'box', 'packaging'],
+    'battery': ['battery', 'batteries', 'disposable'],
+    'paint': ['paint', 'coating'],
+    'spectacles': ['spectacles', 'glasses', 'eyeglasses', 'optical'],
+    // Eco-friendly materials
+    'stainless steel': ['stainless', 'steel', 'reusable', 'bottle', 'tumbler', 'mug'],
+    'bamboo': ['bamboo', 'utensils', 'cutlery', 'fork', 'spoon', 'knife', 'toothbrush', 'comb'],
+    'canvas': ['canvas', 'tote', 'bag', 'cotton'],
+    'compostable': ['compostable', 'biodegradable', 'plant', 'organic', 'natural'],
+    'hemp': ['hemp', 'organic', 'natural', 'fabric'],
+    'solar': ['solar', 'powered', 'eco', 'friendly', 'sustainable'],
+    'beeswax': ['beeswax', 'wax', 'natural'],
+    'liquid': ['liquid', 'detergent', 'soap', 'shampoo'],
+    'powder': ['powder', 'laundry', 'detergent'],
+    'mixed materials': ['mixed', 'materials', 'appliances', 'refrigerator', 'phone', 'case']
   };
 
   for (const [material, keywords] of Object.entries(materialKeywords)) {

@@ -116,11 +116,35 @@ export default function RecyclingInfoModal({ visible, onClose, detectedItem, onS
     return 'Poor';
   };
 
+  const isEcoFriendly = () => {
+    if (!detectedItem) return false;
+    const ecoFriendlyCategories = ['Eco-Friendly Container', 'Eco-Friendly Accessory', 'Eco-Friendly Kitchenware', 'Eco-Friendly Electronics', 'Eco-Friendly Packaging'];
+    const ecoFriendlyMaterials = ['Stainless Steel', 'Bamboo', 'Cotton Canvas', 'Plant-Based Materials', 'Hemp'];
+    const ecoFriendlyKeywords = ['reusable', 'compostable', 'biodegradable', 'solar', 'eco', 'sustainable'];
+    
+    return ecoFriendlyCategories.includes(detectedItem.category) ||
+           ecoFriendlyMaterials.includes(detectedItem.material) ||
+           ecoFriendlyKeywords.some(keyword => 
+             detectedItem.name.toLowerCase().includes(keyword) ||
+             detectedItem.recyclingInstructions.toLowerCase().includes(keyword)
+           );
+  };
+
   const getRecyclabilityIcon = () => {
+    if (isEcoFriendly()) {
+      return <Ionicons name="leaf" size={24} color="#4CAF50" />;
+    }
     if (detectedItem.recyclable) {
       return <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />;
     }
     return <Ionicons name="close-circle" size={24} color="#F44336" />;
+  };
+
+  const getRecyclabilityText = () => {
+    if (isEcoFriendly()) {
+      return '🌱 Eco-Friendly Item';
+    }
+    return detectedItem.recyclable ? 'Recyclable' : 'Not Recyclable';
   };
 
   const getBiodegradabilityIcon = () => {
@@ -197,7 +221,7 @@ export default function RecyclingInfoModal({ visible, onClose, detectedItem, onS
               <View style={styles.recyclabilityHeader}>
                 {getRecyclabilityIcon()}
                 <Text style={styles.recyclabilityText}>
-                  {detectedItem.recyclable ? 'Recyclable' : 'Not Recyclable'}
+                  {getRecyclabilityText()}
                 </Text>
               </View>
               <Text style={styles.instructions}>
@@ -239,14 +263,14 @@ export default function RecyclingInfoModal({ visible, onClose, detectedItem, onS
                 {getBiodegradabilityIcon()}
                 <Text style={styles.impactLabel}>Biodegradability</Text>
                 <Text style={styles.impactValue}>
-                  {detectedItem.environmentalImpact.biodegradability.replace('_', ' ')}
+                  {detectedItem.environmentalImpact.biodegradability.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 </Text>
               </View>
               <View style={styles.impactItem}>
                 <Ionicons name="refresh" size={20} color="#9C27B0" />
                 <Text style={styles.impactLabel}>Recyclability</Text>
                 <Text style={styles.impactValue}>
-                  {detectedItem.environmentalImpact.recyclability.replace('_', ' ')}
+                  {detectedItem.environmentalImpact.recyclability.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 </Text>
               </View>
             </View>

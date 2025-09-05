@@ -13,6 +13,10 @@ import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { DetectedItem, calculateEnvironmentalScore } from '../services/itemDetection';
 
+interface BookmarkedItem extends DetectedItem {
+  bookmarkedAt: string;
+}
+
 interface BookmarksModalProps {
   visible: boolean;
   onClose: () => void;
@@ -22,7 +26,7 @@ interface BookmarksModalProps {
 const { width } = Dimensions.get('window');
 
 export default function BookmarksModal({ visible, onClose, onViewItem }: BookmarksModalProps) {
-  const [bookmarks, setBookmarks] = useState<DetectedItem[]>([]);
+  const [bookmarks, setBookmarks] = useState<BookmarkedItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -36,7 +40,7 @@ export default function BookmarksModal({ visible, onClose, onViewItem }: Bookmar
       setLoading(true);
       const storedBookmarks = await AsyncStorage.getItem('recycling_bookmarks');
       if (storedBookmarks) {
-        const parsedBookmarks = JSON.parse(storedBookmarks);
+        const parsedBookmarks: BookmarkedItem[] = JSON.parse(storedBookmarks);
         setBookmarks(parsedBookmarks);
       } else {
         setBookmarks([]);
@@ -49,7 +53,7 @@ export default function BookmarksModal({ visible, onClose, onViewItem }: Bookmar
     }
   };
 
-  const removeBookmark = async (itemToRemove: DetectedItem) => {
+  const removeBookmark = async (itemToRemove: BookmarkedItem) => {
     try {
       const updatedBookmarks = bookmarks.filter(
         bookmark => !(bookmark.name === itemToRemove.name && 
@@ -136,7 +140,7 @@ export default function BookmarksModal({ visible, onClose, onViewItem }: Bookmar
               </Text>
             </View>
           ) : (
-            bookmarks.map((item, index) => {
+            bookmarks.map((item: BookmarkedItem, index) => {
               const environmentalScore = calculateEnvironmentalScore(item);
               return (
                 <TouchableOpacity
@@ -325,3 +329,4 @@ const styles = StyleSheet.create({
     padding: 4,
   },
 });
+

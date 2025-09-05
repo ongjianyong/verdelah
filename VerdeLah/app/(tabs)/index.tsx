@@ -134,10 +134,20 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.greeting}>
-          Welcome back, {userData?.name || 'Eco Warrior'}! 🌱
-        </Text>
-        <Text style={styles.subtitle}>Ready to make a difference today?</Text>
+        <View style={styles.headerContent}>
+          <View style={styles.headerText}>
+            <Text style={styles.greeting}>
+              Welcome back, {userData?.name || 'Eco Warrior'}! 🌱
+            </Text>
+            <Text style={styles.subtitle}>Ready to make a difference today?</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.bookmarksButton}
+            onPress={() => setShowBookmarks(true)}
+          >
+            <Text style={styles.bookmarksIcon}>🔖</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView 
@@ -218,6 +228,17 @@ export default function HomeScreen() {
         onClose={() => setShowBookmarks(false)}
         onViewItem={handleViewBookmark}
       />
+
+      {/* Processing Overlay */}
+      {isProcessing && (
+        <View style={styles.processingOverlay}>
+          <View style={styles.processingContainer}>
+            <ActivityIndicator size="large" color="#2E7D32" />
+            <Text style={styles.processingText}>Analyzing your item...</Text>
+            <Text style={styles.processingSubtext}>This may take a few seconds</Text>
+          </View>
+        </View>
+      )}
     </View>
   );
 }
@@ -245,6 +266,14 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     paddingHorizontal: 20,
   },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerText: {
+    flex: 1,
+  },
   greeting: {
     fontSize: 20,
     fontWeight: 'bold',
@@ -255,12 +284,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.8)',
   },
+  bookmarksButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    padding: 10,
+    borderRadius: 20,
+    marginLeft: 15,
+  },
+  bookmarksIcon: {
+    fontSize: 20,
+  },
   content: {
     flex: 1,
     padding: 20,
   },
   scrollContent: {
-    paddingBottom: 70,
+    paddingBottom: 75,
   },
   statsContainer: {
     flexDirection: 'row',
@@ -356,5 +394,41 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     zIndex: 1000,
+  },
+  processingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 2000,
+  },
+  processingContainer: {
+    backgroundColor: 'white',
+    padding: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    elevation: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    minWidth: 200,
+  },
+  processingText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: 15,
+    textAlign: 'center',
+  },
+  processingSubtext: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 5,
+    textAlign: 'center',
   },
 });
