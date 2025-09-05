@@ -356,15 +356,19 @@ const styles = StyleSheet.create({
   },
   neighborhoodScore: {
     alignItems: 'center',
+    minWidth: 60, // Ensure consistent width for alignment
   },
   scoreText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#2E7D32',
+    textAlign: 'center',
+    minWidth: 50, // Ensure consistent width for numbers
   },
   scoreLabel: {
     fontSize: 10,
     color: '#666',
+    textAlign: 'center',
   },
   // Button
   viewLeaderboardButton: {

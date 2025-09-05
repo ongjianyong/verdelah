@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native';
 
 export default function NeighborhoodChallengeScreen() {
   const handleViewLeaderboard = () => {
-    router.push('/(tabs)/leaderboard');
+    router.push('/(tabs)/leaderboard?tab=neighborhood');
   };
 
   return (
