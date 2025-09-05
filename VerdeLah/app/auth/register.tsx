@@ -447,7 +447,7 @@ const styles = StyleSheet.create({
     color: '#2E7D32',
   },
   registerButton: {
-    backgroundColor: 'rgba(76, 175, 80, 0.8)', // Translucent green button
+    backgroundColor: 'rgba(46, 125, 50, 0.9)', // Darker green button (same as login)
     borderRadius: 12,
     marginBottom: 24,
     paddingVertical: 16,
