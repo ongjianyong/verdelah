@@ -1,12 +1,12 @@
 import { collection, doc, getDoc, getDocs, orderBy, query, where } from 'firebase/firestore';
 import React, { useCallback, useEffect, useState } from 'react';
 import {
-  ActivityIndicator,
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    ActivityIndicator,
+    FlatList,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { db } from '../app/(tabs)/services/firebase';
 import { RecyclingBin } from '../services/geojson-loader';
@@ -93,7 +93,7 @@ export default function BinLeaderboard({ bin, onClose, visible = true }: BinLead
               
               leaderboardEntries.push({
                 userId,
-                userName: userData.name || userData.displayName,
+                userName: userData.username || userData.displayName || 'Anonymous',
                 totalRecycled,
                 lastRecycledAt,
                 ecoPoints,

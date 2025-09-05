@@ -1,7 +1,9 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { collection, getDocs, query, where } from 'firebase/firestore';
 import React, { useState } from 'react';
 import { Alert, Modal, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import UserProfileModal from '../../components/UserProfileModal';
+import { db } from './services/firebase';
 
 // Singapore neighborhoods for the challenge
 const SINGAPORE_NEIGHBORHOODS = [
@@ -41,12 +43,26 @@ const SINGAPORE_NEIGHBORHOODS = [
 export default function Profile() {
   const { user, userData, logout, updateUserData } = useAuth();
   const [editModalVisible, setEditModalVisible] = useState(false);
-  const [editingName, setEditingName] = useState(userData?.name || '');
+  const [editingUsername, setEditingUsername] = useState(userData?.username || '');
   const [editingNeighborhood, setEditingNeighborhood] = useState(userData?.neighborhood || '');
   const [showNeighborhoodDropdown, setShowNeighborhoodDropdown] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [showUserProfile, setShowUserProfile] = useState(false);
 
+
+  const checkUsernameUniqueness = async (username: string, currentUserId: string): Promise<boolean> => {
+    try {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('username', '==', username));
+      const querySnapshot = await getDocs(q);
+      
+      // Check if any user other than the current user has this username
+      return querySnapshot.docs.every(doc => doc.id !== currentUserId);
+    } catch (error) {
+      console.error('Error checking username uniqueness:', error);
+      return false;
+    }
+  };
 
   const handleLogout = () => {
     Alert.alert(
@@ -60,8 +76,18 @@ export default function Profile() {
   };
 
   const handleSaveProfile = async () => {
-    if (!editingName.trim()) {
-      Alert.alert('Error', 'Name cannot be empty');
+    if (!editingUsername.trim()) {
+      Alert.alert('Error', 'Username cannot be empty');
+      return;
+    }
+
+    if (editingUsername.length < 3) {
+      Alert.alert('Error', 'Username must be at least 3 characters long');
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(editingUsername)) {
+      Alert.alert('Error', 'Username can only contain letters, numbers, and underscores');
       return;
     }
 
@@ -71,8 +97,17 @@ export default function Profile() {
     }
 
     try {
+      // Check if username is unique (only if it's different from current username)
+      if (editingUsername !== userData?.username) {
+        const isUsernameUnique = await checkUsernameUniqueness(editingUsername, user?.uid || '');
+        if (!isUsernameUnique) {
+          Alert.alert('Error', 'Username is already taken. Please choose a different username.');
+          return;
+        }
+      }
+
       await updateUserData({
-        name: editingName.trim(),
+        username: editingUsername.trim(),
         neighborhood: editingNeighborhood,
       });
       setEditModalVisible(false);
@@ -119,7 +154,7 @@ export default function Profile() {
         }
       >
         <View style={styles.userInfo}>
-          <Text style={styles.name}>{userData?.name || 'Loading...'}</Text>
+          <Text style={styles.name}>{userData?.username || 'Loading...'}</Text>
           <Text style={styles.email}>{user?.email}</Text>
           <Text style={styles.neighborhood}>📍 {userData?.neighborhood || 'No neighborhood set'}</Text>
         </View>
@@ -145,7 +180,7 @@ export default function Profile() {
         <TouchableOpacity 
           style={styles.editButton} 
           onPress={() => {
-            setEditingName(userData?.name || '');
+            setEditingUsername(userData?.username || '');
             setEditingNeighborhood(userData?.neighborhood || '');
             setEditModalVisible(true);
           }}
@@ -171,12 +206,14 @@ export default function Profile() {
             <Text style={styles.modalTitle}>Edit Profile</Text>
             
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Name</Text>
+              <Text style={styles.inputLabel}>Username</Text>
               <TextInput
                 style={styles.input}
-                value={editingName}
-                onChangeText={setEditingName}
-                placeholder="Enter your name"
+                value={editingUsername}
+                onChangeText={setEditingUsername}
+                placeholder="Enter your username"
+                autoCapitalize="none"
+                autoCorrect={false}
               />
             </View>
 
@@ -247,7 +284,7 @@ export default function Profile() {
         onClose={() => setShowUserProfile(false)}
         user={userData ? {
           id: user?.uid || '',
-          name: userData.name,
+          name: userData.username,
           ecoPoints: userData.ecoPoints || 0,
           totalRecycled: userData.totalRecycled || 0,
           neighborhood: userData.neighborhood,

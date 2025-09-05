@@ -1,12 +1,12 @@
 import React from 'react';
 import {
-    Dimensions,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  Dimensions,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { BadgeService, UserStats } from '../services/badgeService';
 import { Badge } from '../types/badges';

@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
+import { collection, doc, getDocs, query, setDoc, where } from 'firebase/firestore';
 import React, { useState } from 'react';
 import {
     Alert,
@@ -55,7 +55,7 @@ const SINGAPORE_NEIGHBORHOODS = [
 ];
 
 export default function RegisterScreen() {
-  const [name, setName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -72,9 +72,31 @@ export default function RegisterScreen() {
     setShowNeighborhoodDropdown(false);
   };
 
+  const checkUsernameUniqueness = async (username: string): Promise<boolean> => {
+    try {
+      const usersRef = collection(db, 'users');
+      const q = query(usersRef, where('username', '==', username));
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.empty;
+    } catch (error) {
+      console.error('Error checking username uniqueness:', error);
+      return false;
+    }
+  };
+
   const handleRegister = async () => {
-    if (!name || !email || !password || !confirmPassword || !neighborhood) {
+    if (!username || !email || !password || !confirmPassword || !neighborhood) {
       Alert.alert('Error', 'Please fill in all fields including neighborhood');
+      return;
+    }
+
+    if (username.length < 3) {
+      Alert.alert('Error', 'Username must be at least 3 characters long');
+      return;
+    }
+
+    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+      Alert.alert('Error', 'Username can only contain letters, numbers, and underscores');
       return;
     }
 
@@ -90,16 +112,24 @@ export default function RegisterScreen() {
 
     setLoading(true);
     try {
+      // Check if username is unique
+      const isUsernameUnique = await checkUsernameUniqueness(username);
+      if (!isUsernameUnique) {
+        Alert.alert('Error', 'Username is already taken. Please choose a different username.');
+        setLoading(false);
+        return;
+      }
+
       // Create user account
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
       // Update user profile with display name
-      await updateProfile(user, { displayName: name });
+      await updateProfile(user, { displayName: username });
 
       // Create user document in Firestore
       await setDoc(doc(db, 'users', user.uid), {
-        name: name,
+        username: username,
         email: email,
         ecoPoints: 0,
         totalRecycled: 0,
@@ -150,14 +180,15 @@ export default function RegisterScreen() {
                 </View>
 
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Full Name</Text>
+                <Text style={styles.inputLabel}>Username</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="Enter your full name"
+                  placeholder="Choose a unique username"
                   placeholderTextColor="#999"
-                  value={name}
-                  onChangeText={setName}
-                  autoCapitalize="words"
+                  value={username}
+                  onChangeText={setUsername}
+                  autoCapitalize="none"
+                  autoCorrect={false}
                 />
               </View>
 

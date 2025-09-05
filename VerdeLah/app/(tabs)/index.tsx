@@ -141,7 +141,7 @@ export default function HomeScreen() {
         <View style={styles.headerContent}>
           <View style={styles.headerText}>
             <Text style={styles.greeting}>
-              Welcome back, {userData?.name || 'Eco Warrior'}! 🌱
+              Welcome back, {userData?.username || 'Eco Warrior'}! 🌱
             </Text>
             <Text style={styles.subtitle}>Ready to make a difference today?</Text>
           </View>

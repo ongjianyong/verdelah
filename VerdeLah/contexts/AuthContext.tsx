@@ -5,7 +5,7 @@ import { auth, db } from '../app/(tabs)/services/firebase';
 
 
 interface UserData {
-  name: string;
+  username: string;
   email: string;
   ecoPoints: number;
   totalRecycled: number;

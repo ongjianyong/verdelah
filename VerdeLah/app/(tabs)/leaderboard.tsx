@@ -10,7 +10,7 @@ import { db } from './services/firebase';
 
 interface LeaderboardEntry {
   id: string;
-  name: string;
+  name: string; // This will now contain the username
   ecoPoints: number;
   totalRecycled: number;
   neighborhood?: string;
@@ -49,9 +49,13 @@ export default function Leaderboard() {
           const data: LeaderboardEntry[] = [];
           
           querySnapshot.forEach((doc) => {
+            const userData = doc.data();
             data.push({
               id: doc.id,
-              ...doc.data(),
+              name: userData.username || userData.name || 'Anonymous', // Use username, fallback to name for backward compatibility
+              ecoPoints: userData.ecoPoints || 0,
+              totalRecycled: userData.totalRecycled || 0,
+              neighborhood: userData.neighborhood,
             } as LeaderboardEntry);
           });
           
@@ -78,9 +82,13 @@ export default function Leaderboard() {
         const data: LeaderboardEntry[] = [];
         
         querySnapshot.forEach((doc) => {
+          const userData = doc.data();
           data.push({
             id: doc.id,
-            ...doc.data(),
+            name: userData.username || userData.name || 'Anonymous', // Use username, fallback to name for backward compatibility
+            ecoPoints: userData.ecoPoints || 0,
+            totalRecycled: userData.totalRecycled || 0,
+            neighborhood: userData.neighborhood,
           } as LeaderboardEntry);
         });
         
@@ -137,7 +145,7 @@ export default function Leaderboard() {
   };
 
   const renderLeaderboardItem = ({ item, index }: { item: LeaderboardEntry; index: number }) => {
-    const isCurrentUser = userData?.name === item.name;
+    const isCurrentUser = userData?.username === item.name;
     const isFirstPlace = index === 0;
     
     return (
