@@ -1,11 +1,11 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
 import NeighborhoodChallenge from '@/components/NeighborhoodChallenge';
 import { router } from 'expo-router';
+import React from 'react';
+import { StyleSheet, View } from 'react-native';
 
 export default function NeighborhoodChallengeScreen() {
   const handleViewLeaderboard = () => {
-    router.push('/(tabs)/leaderboard?tab=neighborhood');
+    router.push('/(tabs)/leaderboard');
   };
 
   return (

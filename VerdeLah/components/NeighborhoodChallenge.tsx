@@ -108,16 +108,16 @@ export default function NeighborhoodChallenge({ onViewLeaderboard }: Neighborhoo
             <Text style={styles.winnerName}>{currentWinner.name}</Text>
             <View style={styles.winnerStats}>
               <View style={styles.winnerStat}>
-                <Text style={styles.winnerStatNumber}>{currentWinner.averagePoints}</Text>
-                <Text style={styles.winnerStatLabel}>Avg Points</Text>
+                <Text style={styles.winnerStatNumber}>{currentWinner.totalPoints}</Text>
+                <Text style={styles.winnerStatLabel}>Total Points</Text>
               </View>
               <View style={styles.winnerStat}>
                 <Text style={styles.winnerStatNumber}>{currentWinner.userCount}</Text>
                 <Text style={styles.winnerStatLabel}>Members</Text>
               </View>
               <View style={styles.winnerStat}>
-                <Text style={styles.winnerStatNumber}>{currentWinner.totalRecycled}</Text>
-                <Text style={styles.winnerStatLabel}>Total Recycled</Text>
+                <Text style={styles.winnerStatNumber}>{currentWinner.averagePoints}</Text>
+                <Text style={styles.winnerStatLabel}>Avg Points</Text>
               </View>
             </View>
           </View>
@@ -136,15 +136,15 @@ export default function NeighborhoodChallenge({ onViewLeaderboard }: Neighborhoo
               </View>
               <View style={styles.userNeighborhoodStat}>
                 <Text style={styles.userNeighborhoodStatNumber}>
-                  {getUserNeighborhoodStats()?.averagePoints || 0}
+                  {getUserNeighborhoodStats()?.totalPoints || 0}
                 </Text>
-                <Text style={styles.userNeighborhoodStatLabel}>Avg Points</Text>
+                <Text style={styles.userNeighborhoodStatLabel}>Total Points</Text>
               </View>
               <View style={styles.userNeighborhoodStat}>
                 <Text style={styles.userNeighborhoodStatNumber}>
-                  {getUserNeighborhoodStats()?.userCount || 0}
+                  {getUserNeighborhoodStats()?.averagePoints || 0}
                 </Text>
-                <Text style={styles.userNeighborhoodStatLabel}>Members</Text>
+                <Text style={styles.userNeighborhoodStatLabel}>Avg Points</Text>
               </View>
             </View>
             {userNeighborhoodRank && (
@@ -166,11 +166,11 @@ export default function NeighborhoodChallenge({ onViewLeaderboard }: Neighborhoo
               <View style={styles.neighborhoodInfo}>
                 <Text style={styles.neighborhoodName}>{hood.name}</Text>
                 <Text style={styles.neighborhoodDetails}>
-                  {hood.averagePoints} avg points • {hood.userCount} members
+                  {hood.totalPoints} total points • {hood.userCount} members
                 </Text>
               </View>
               <View style={styles.neighborhoodScore}>
-                <Text style={styles.scoreText}>{hood.averagePoints}</Text>
+                <Text style={styles.scoreText}>{hood.totalPoints}</Text>
                 <Text style={styles.scoreLabel}>pts</Text>
               </View>
             </View>

@@ -1,8 +1,14 @@
 import { useAuth } from '@/contexts/AuthContext';
+import { useMap } from '@/contexts/MapContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import BookmarksModal from '../../components/BookmarksModal';
+import CameraScanner from '../../components/CameraScanner';
+import RecyclingBinMap from '../../components/RecyclingBinMap';
+import RecyclingInfoModal from '../../components/RecyclingInfoModal';
+import { DetectedItem, detectItem } from '../../services/itemDetection';
 import { ECO_TIPS } from './services/ecotips';
 import { testFirebaseConnections } from './services/firebase-test';
 
@@ -15,8 +21,17 @@ function getRandomTips(count = 3) {
 
 export default function HomeScreen() {
   const { userData } = useAuth();
+  const { setMapOpen } = useMap();
   const [tips, setTips] = useState(getRandomTips());
   const [refreshing, setRefreshing] = useState(false);
+  
+  // Scan and Map states
+  const [showCamera, setShowCamera] = useState(false);
+  const [showMap, setShowMap] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const [detectedItem, setDetectedItem] = useState<DetectedItem | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [showBookmarks, setShowBookmarks] = useState(false);
 
 
   useFocusEffect(
@@ -62,18 +77,68 @@ export default function HomeScreen() {
     });
   }, []);
 
+  // Update map context when showMap changes
+  useEffect(() => {
+    setMapOpen(showMap);
+  }, [showMap, setMapOpen]);
+
+  const handleScan = () => {
+    setShowCamera(true);
+  };
+
+  const handleScanComplete = async (imageUri: string) => {
+    setIsProcessing(true);
+    try {
+      const result = await detectItem(imageUri);
+      if (result) {
+        setDetectedItem(result);
+        setShowResults(true);
+      } else {
+        Alert.alert(
+          'Detection Failed',
+          'We couldn\'t identify the item. Please try again with better lighting or a clearer image.',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      console.error('Detection error:', error);
+      Alert.alert(
+        'Error',
+        'Something went wrong during detection. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleCloseResults = () => {
+    setShowResults(false);
+    setDetectedItem(null);
+  };
+
+  const handleScanAnother = () => {
+    setShowCamera(true);
+  };
+
+  const handleViewBookmark = (item: DetectedItem) => {
+    setDetectedItem(item);
+    setShowResults(true);
+    setShowBookmarks(false);
+  };
+
   const quickActions = [
     {
       title: 'Scan Item',
       description: 'Identify and recycle',
       icon: '📷',
-      onPress: () => router.push('/(tabs)/explore'),
+      onPress: handleScan,
     },
     {
       title: 'Find Bins',
       description: 'Locate nearby bins',
       icon: '📍',
-      onPress: () => router.push('/(tabs)/explore?openMap=true'),
+      onPress: () => setShowMap(true),
     },
     {
       title: 'Leaderboard',
@@ -141,6 +206,35 @@ export default function HomeScreen() {
               </View> ))}
         </View>
       </ScrollView>
+
+      {/* Map View */}
+      {showMap && (
+        <View style={styles.mapContainer}>
+          <RecyclingBinMap onClose={() => setShowMap(false)} />
+        </View>
+      )}
+
+      {/* Camera Scanner */}
+      <CameraScanner
+        visible={showCamera}
+        onClose={() => setShowCamera(false)}
+        onScanComplete={handleScanComplete}
+      />
+
+      {/* Recycling Info Modal */}
+      <RecyclingInfoModal
+        visible={showResults}
+        onClose={handleCloseResults}
+        detectedItem={detectedItem}
+        onScanAnother={handleScanAnother}
+      />
+
+      {/* Bookmarks Modal */}
+      <BookmarksModal
+        visible={showBookmarks}
+        onClose={() => setShowBookmarks(false)}
+        onViewItem={handleViewBookmark}
+      />
     </View>
   );
 }
@@ -259,5 +353,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#333',
     lineHeight: 18,
+  },
+  mapContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 1000,
   },
 });

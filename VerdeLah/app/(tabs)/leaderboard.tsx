@@ -1,9 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
-import { useLocalSearchParams } from 'expo-router';
 import { collection, getDocs, limit, orderBy, query, where } from 'firebase/firestore';
 import React, { useCallback, useEffect, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { NeighborhoodLeaderboardService, NeighborhoodStats } from '../../services/neighborhood-leaderboard';
 import { db } from './services/firebase';
 
 interface LeaderboardEntry {
@@ -15,22 +13,17 @@ interface LeaderboardEntry {
 
 export default function Leaderboard() {
   const { userData } = useAuth();
-  const params = useLocalSearchParams();
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [neighborhoodLeaderboard, setNeighborhoodLeaderboard] = useState<NeighborhoodStats[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedTab, setSelectedTab] = useState<'points' | 'neighborhood-users' | 'neighborhood'>(
-    params.tab === 'neighborhood' ? 'neighborhood' : 'points'
+  const [selectedTab, setSelectedTab] = useState<'points' | 'neighborhood-users'>(
+    'points'
   );
   const [refreshing, setRefreshing] = useState(false);
 
   const fetchLeaderboard = useCallback(async () => {
     try {
       setLoading(true);
-      if (selectedTab === 'neighborhood') {
-        const data = await NeighborhoodLeaderboardService.getNeighborhoodLeaderboard();
-        setNeighborhoodLeaderboard(data);
-      } else if (selectedTab === 'neighborhood-users') {
+      if (selectedTab === 'neighborhood-users') {
         // Fetch users from the current user's neighborhood
         if (userData?.neighborhood) {
           const usersRef = collection(db, 'users');
@@ -127,42 +120,13 @@ export default function Leaderboard() {
     );
   };
 
-  const renderNeighborhoodItem = ({ item, index }: { item: NeighborhoodStats; index: number }) => {
-    const isCurrentUserNeighborhood = userData?.neighborhood === item.name;
-    
-    return (
-      <View style={[styles.leaderboardItem, isCurrentUserNeighborhood && styles.currentUserItem]}>
-        <View style={styles.rankContainer}>
-          <Text style={[styles.rank, isCurrentUserNeighborhood && styles.currentUserText]}>
-            #{index + 1}
-          </Text>
-        </View>
-        <View style={styles.userInfo}>
-          <Text style={[styles.userName, isCurrentUserNeighborhood && styles.currentUserText]}>
-            {item.name}
-          </Text>
-          <Text style={styles.userStats}>
-            {item.averagePoints} avg points • {item.userCount} members
-          </Text>
-        </View>
-        <View style={styles.neighborhoodScore}>
-          <Text style={[styles.scoreText, isCurrentUserNeighborhood && styles.currentUserText]}>
-            {item.averagePoints}
-          </Text>
-          <Text style={styles.scoreLabel}>pts</Text>
-        </View>
-      </View>
-    );
-  };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.title}>Leaderboard</Text>
         <Text style={styles.subtitle}>
-          {selectedTab === 'neighborhood' 
-            ? 'Top Neighborhoods' 
-            : selectedTab === 'neighborhood-users'
+          {selectedTab === 'neighborhood-users'
             ? `Top Users in ${userData?.neighborhood || 'Your Neighborhood'}`
             : 'Top Singapore Eco Warriors'
           }
@@ -186,14 +150,6 @@ export default function Leaderboard() {
             {userData?.neighborhood || 'My Neighborhood'}
           </Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.tab, selectedTab === 'neighborhood' && styles.activeTab]}
-          onPress={() => setSelectedTab('neighborhood')}
-        >
-          <Text style={[styles.tabText, selectedTab === 'neighborhood' && styles.activeTabText]}>
-            Neighborhoods
-          </Text>
-        </TouchableOpacity>
       </View>
 
       <View style={styles.content}>
@@ -201,22 +157,6 @@ export default function Leaderboard() {
           <View style={styles.loadingContainer}>
             <Text style={styles.loadingText}>Loading leaderboard...</Text>
           </View>
-        ) : selectedTab === 'neighborhood' ? (
-          <FlatList
-            data={neighborhoodLeaderboard}
-            renderItem={renderNeighborhoodItem}
-            keyExtractor={(item) => item.name}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.listContainer}
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                colors={['#2E7D32']}
-                tintColor="#2E7D32"
-              />
-            }
-          />
         ) : selectedTab === 'neighborhood-users' && (!userData?.neighborhood || leaderboard.length === 0) ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>
@@ -348,19 +288,6 @@ const styles = StyleSheet.create({
   },
   userStats: {
     fontSize: 12,
-    color: '#666',
-  },
-  neighborhoodScore: {
-    alignItems: 'center',
-    marginRight: 10,
-  },
-  scoreText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2E7D32',
-  },
-  scoreLabel: {
-    fontSize: 10,
     color: '#666',
   },
   loadingContainer: {

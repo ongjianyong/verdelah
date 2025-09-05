@@ -64,8 +64,8 @@ export class NeighborhoodLeaderboardService {
         averageRecycled: Math.round(data.totalRecycled / data.userCount),
       }));
 
-      // Sort by average points (per capita)
-      return neighborhoods.sort((a, b) => b.averagePoints - a.averagePoints);
+      // Sort by total points (overall impact)
+      return neighborhoods.sort((a, b) => b.totalPoints - a.totalPoints);
     } catch (error) {
       console.error('Error fetching neighborhood leaderboard:', error);
       // Provide more specific error information for Firebase index issues
