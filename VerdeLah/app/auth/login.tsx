@@ -57,7 +57,7 @@ export default function LoginScreen() {
                 <Text style={styles.logoEmoji}>🌱</Text>
                 <Text style={styles.title}>VerdeLah</Text>
               </View>
-              <Text style={styles.subtitle}>Singapore&apos;s Green Revolution Starts Here</Text>
+              <Text style={styles.subtitle}>Singapore&apos;s Green Revolution{"\n"}Starts Here</Text>
             </View>
 
 

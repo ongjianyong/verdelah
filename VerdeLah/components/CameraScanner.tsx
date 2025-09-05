@@ -9,7 +9,7 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
+import { CameraView, CameraType, useCameraPermissions, Camera } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -28,8 +28,12 @@ export default function CameraScanner({ visible, onClose, onScanComplete }: Came
   const cameraRef = useRef<CameraView>(null);
 
   useEffect(() => {
-    if (visible && !permission?.granted) {
+    if (visible && !permission?.granted && permission?.canAskAgain !== false) {
+      // Auto-request permission only if we can still ask
+      console.log('Camera modal opened, auto-requesting permission');
       requestPermission();
+    } else if (visible && !permission?.granted) {
+      console.log('Camera modal opened, permission not granted and cannot ask again:', permission);
     }
   }, [visible, permission, requestPermission]);
 
@@ -60,9 +64,11 @@ export default function CameraScanner({ visible, onClose, onScanComplete }: Came
   };
 
   const pickImageFromGallery = async () => {
+    console.log('pickImageFromGallery called');
     try {
       // Request media library permissions
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      console.log('Media library permission status:', status);
       
       if (status !== 'granted') {
         Alert.alert(
@@ -81,6 +87,8 @@ export default function CameraScanner({ visible, onClose, onScanComplete }: Came
         quality: 0.8,
       });
 
+      console.log('Image picker result:', result);
+
       if (!result.canceled && result.assets[0]) {
         onScanComplete(result.assets[0].uri);
         onClose();
@@ -88,6 +96,30 @@ export default function CameraScanner({ visible, onClose, onScanComplete }: Came
     } catch (error) {
       console.error('Error picking image:', error);
       Alert.alert('Error', 'Failed to select image from gallery. Please try again.');
+    }
+  };
+
+  const handleRequestPermission = async () => {
+    console.log('handleRequestPermission called');
+    try {
+      // Use the hook's requestPermission function
+      const result = await requestPermission();
+      console.log('Permission request result:', result);
+      
+      if (result.granted) {
+        console.log('Camera permission granted!');
+        // The component should re-render automatically
+      } else {
+        console.log('Camera permission denied');
+        Alert.alert(
+          'Permission Denied',
+          'Camera permission was denied. Please enable it in your device settings:\n\n1. Go to Settings → Apps → Expo Start\n2. Tap Permissions → Camera\n3. Enable camera access',
+          [{ text: 'OK' }]
+        );
+      }
+    } catch (error) {
+      console.error('Error requesting permission:', error);
+      Alert.alert('Error', 'Failed to request camera permission. Please try again.');
     }
   };
 
@@ -104,16 +136,44 @@ export default function CameraScanner({ visible, onClose, onScanComplete }: Came
   }
 
   if (!permission.granted) {
+    console.log('Camera permission not granted. Permission state:', permission);
     return (
       <Modal visible={visible} animationType="slide">
         <View style={styles.container}>
-          <Text style={styles.message}>We need your permission to show the camera</Text>
-          <TouchableOpacity style={styles.button} onPress={requestPermission}>
-            <Text style={styles.buttonText}>Grant Permission</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={[styles.button, styles.closeButton]} onPress={onClose}>
-            <Text style={styles.buttonText}>Close</Text>
-          </TouchableOpacity>
+          <View style={styles.permissionContainer}>
+            <Ionicons name="camera-outline" size={80} color="#666" style={styles.permissionIcon} />
+            <Text style={styles.permissionTitle}>Camera Permission Required</Text>
+            <Text style={styles.permissionMessage}>
+              VerdeLah needs access to your camera to scan items for recycling information.
+            </Text>
+            <Text style={styles.permissionSubtext}>
+              If you've disabled camera access in your phone's settings, please:
+              {'\n'}1. Go to Settings → Apps → Expo Start
+              {'\n'}2. Tap Permissions → Camera
+              {'\n'}3. Enable camera access
+            </Text>
+            <TouchableOpacity 
+              style={styles.button} 
+              onPress={handleRequestPermission}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.buttonText}>Grant Permission</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.button, styles.secondaryButton]} 
+              onPress={pickImageFromGallery}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.secondaryButtonText}>Use Gallery Instead</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={[styles.button, styles.closeButton]} 
+              onPress={onClose}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.buttonText}>Close</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Modal>
     );
@@ -327,6 +387,47 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  permissionContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 30,
+  },
+  permissionIcon: {
+    marginBottom: 20,
+  },
+  permissionTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+    marginBottom: 15,
+  },
+  permissionMessage: {
+    fontSize: 16,
+    color: 'white',
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 22,
+  },
+  permissionSubtext: {
+    fontSize: 14,
+    color: '#ccc',
+    textAlign: 'center',
+    marginBottom: 30,
+    lineHeight: 20,
+  },
+  secondaryButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: '#2E7D32',
+  },
+  secondaryButtonText: {
+    color: '#2E7D32',
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
