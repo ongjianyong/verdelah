@@ -3,14 +3,13 @@ import { useMap } from '@/contexts/MapContext';
 import { useFocusEffect } from '@react-navigation/native';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import BookmarksModal from '../../components/BookmarksModal';
 import CameraScanner from '../../components/CameraScanner';
 import RecyclingBinMap from '../../components/RecyclingBinMap';
 import RecyclingInfoModal from '../../components/RecyclingInfoModal';
 import { DetectedItem, detectItem } from '../../services/itemDetection';
 import { ECO_TIPS } from './services/ecotips';
-import { testFirebaseConnections } from './services/firebase-test';
 
 
 
@@ -20,7 +19,7 @@ function getRandomTips(count = 3) {
 }
 
 export default function HomeScreen() {
-  const { userData } = useAuth();
+  const { userData, loading: authLoading } = useAuth();
   const { setMapOpen } = useMap();
   const [tips, setTips] = useState(getRandomTips());
   const [refreshing, setRefreshing] = useState(false);
@@ -30,7 +29,6 @@ export default function HomeScreen() {
   const [showMap, setShowMap] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [detectedItem, setDetectedItem] = useState<DetectedItem | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
   const [showBookmarks, setShowBookmarks] = useState(false);
 
 
@@ -43,16 +41,8 @@ export default function HomeScreen() {
   const onRefresh = React.useCallback(async () => {
     setRefreshing(true);
     try {
-      // Refresh tips
+      // Only refresh tips - no unnecessary Firebase testing
       setTips(getRandomTips());
-      
-      // Test Firebase connections
-      const result = await testFirebaseConnections();
-      if (result.success) {
-        console.log('Firebase test passed on refresh:', result.message);
-      } else {
-        console.error('Firebase test failed on refresh:', result.error);
-      }
     } catch (error) {
       console.error('Error during refresh:', error);
     } finally {
@@ -62,20 +52,6 @@ export default function HomeScreen() {
 
 
  
-  useEffect(() => {
-    testFirebaseConnections().then((result) => {
-      if (result.success) {
-        console.log(' Firebase test passed:', result.message);
-      } else {
-        console.error('Firebase test failed:', result.error);
-        Alert.alert(
-          'Firebase Connection Error',
-          'Failed to connect to Firebase services. Please check your configuration.',
-          [{ text: 'OK' }]
-        );
-      }
-    });
-  }, []);
 
   // Update map context when showMap changes
   useEffect(() => {
@@ -87,7 +63,6 @@ export default function HomeScreen() {
   };
 
   const handleScanComplete = async (imageUri: string) => {
-    setIsProcessing(true);
     try {
       const result = await detectItem(imageUri);
       if (result) {
@@ -107,8 +82,6 @@ export default function HomeScreen() {
         'Something went wrong during detection. Please try again.',
         [{ text: 'OK' }]
       );
-    } finally {
-      setIsProcessing(false);
     }
   };
 
@@ -147,6 +120,16 @@ export default function HomeScreen() {
       onPress: () => router.push('/(tabs)/leaderboard'),
     },
   ];
+
+  // Show loading state while user data is being fetched
+  if (authLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#2E7D32" />
+        <Text style={styles.loadingText}>Loading your eco journey...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -243,6 +226,18 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f5f5f5',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+    color: '#666',
+    fontWeight: '500',
   },
   header: {
     backgroundColor: '#2E7D32',

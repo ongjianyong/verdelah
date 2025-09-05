@@ -4,7 +4,7 @@ import React from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 export default function Index() {
-  const { user, loading } = useAuth();
+  const { loading } = useAuth();
 
   if (loading) {
     return (
@@ -14,11 +14,9 @@ export default function Index() {
     );
   }
 
-  if (!user) {
-    return <Redirect href="/auth/login" />;
-  }
-
-  return <Redirect href="/(tabs)" />;
+  // For testing: Always show onboarding first
+  // Later we'll change this to only show once for first-time users
+  return <Redirect href="/onboarding" />;
 }
 
 const styles = StyleSheet.create({
