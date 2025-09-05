@@ -30,6 +30,7 @@ export default function HomeScreen() {
   const [showResults, setShowResults] = useState(false);
   const [detectedItem, setDetectedItem] = useState<DetectedItem | null>(null);
   const [showBookmarks, setShowBookmarks] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
 
 
   useFocusEffect(
@@ -63,6 +64,7 @@ export default function HomeScreen() {
   };
 
   const handleScanComplete = async (imageUri: string) => {
+    setIsProcessing(true);
     try {
       const result = await detectItem(imageUri);
       if (result) {
@@ -82,6 +84,8 @@ export default function HomeScreen() {
         'Something went wrong during detection. Please try again.',
         [{ text: 'OK' }]
       );
+    } finally {
+      setIsProcessing(false);
     }
   };
 
