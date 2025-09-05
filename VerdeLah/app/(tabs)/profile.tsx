@@ -1,6 +1,7 @@
 import { useAuth } from '@/contexts/AuthContext';
 import React, { useState } from 'react';
 import { Alert, Modal, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import UserProfileModal from '../../components/UserProfileModal';
 
 // Singapore neighborhoods for the challenge
 const SINGAPORE_NEIGHBORHOODS = [
@@ -44,6 +45,7 @@ export default function Profile() {
   const [editingNeighborhood, setEditingNeighborhood] = useState(userData?.neighborhood || '');
   const [showNeighborhoodDropdown, setShowNeighborhoodDropdown] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [showUserProfile, setShowUserProfile] = useState(false);
 
 
   const handleLogout = () => {
@@ -132,6 +134,13 @@ export default function Profile() {
             <Text style={styles.statLabel}>Items Recycled</Text>
           </View>
         </View>
+
+        <TouchableOpacity 
+          style={styles.viewProfileButton} 
+          onPress={() => setShowUserProfile(true)}
+        >
+          <Text style={styles.viewProfileButtonText}>View My Badges</Text>
+        </TouchableOpacity>
 
         <TouchableOpacity 
           style={styles.editButton} 
@@ -231,6 +240,19 @@ export default function Profile() {
           </View>
         </View>
       </Modal>
+
+      {/* User Profile Modal */}
+      <UserProfileModal
+        visible={showUserProfile}
+        onClose={() => setShowUserProfile(false)}
+        user={userData ? {
+          id: user?.uid || '',
+          name: userData.name,
+          ecoPoints: userData.ecoPoints || 0,
+          totalRecycled: userData.totalRecycled || 0,
+          neighborhood: userData.neighborhood,
+        } : null}
+      />
     </View>
   );
 }
@@ -301,6 +323,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     textAlign: 'center',
+  },
+  viewProfileButton: {
+    backgroundColor: '#2E7D32',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  viewProfileButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   editButton: {
     backgroundColor: '#1976D2',

@@ -118,8 +118,8 @@ export default function HomeScreen() {
       onPress: () => setShowMap(true),
     },
     {
-      title: 'Leaderboard',
-      description: 'See top recyclers',
+      title: 'Monthly Contest',
+      description: 'See monthly rankings',
       icon: '🏆',
       onPress: () => router.push('/(tabs)/leaderboard'),
     },

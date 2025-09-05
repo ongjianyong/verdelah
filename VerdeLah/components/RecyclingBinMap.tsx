@@ -136,16 +136,6 @@ export default function RecyclingBinMap({ onBinSelected, onClose }: MapProps) {
     }
   };
 
-  const centerOnUserLocation = () => {
-    if (userLocation && mapRef.current) {
-      mapRef.current.animateToRegion({
-        latitude: userLocation.coords.latitude,
-        longitude: userLocation.coords.longitude,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
-      });
-    }
-  };
 
   const getBinColor = (bin: RecyclingBin) => {
     // Color based on distance if user location is available
@@ -232,37 +222,16 @@ export default function RecyclingBinMap({ onBinSelected, onClose }: MapProps) {
         ))}
       </MapView>
 
-      {/* Map Controls */}
-      <View style={styles.controlsContainer}>
-        {onClose && (
-          <TouchableOpacity
-            style={styles.closeButton}
-            onPress={onClose}
-          >
-            <Text style={styles.closeButtonText}>✕</Text>
-          </TouchableOpacity>
-        )}
-        
-        {locationPermission && (
-          <TouchableOpacity
-            style={styles.locationButton}
-            onPress={centerOnUserLocation}
-          >
-            <Text style={styles.locationButtonText}>📍</Text>
-          </TouchableOpacity>
-        )}
-        
-        <View style={styles.statsContainer}>
-          <Text style={styles.statsText}>
-            {bins.length} bins loaded
-          </Text>
-          {userLocation && nearestBins.length > 0 && nearestBins[0].distance !== undefined && (
-            <Text style={styles.statsText}>
-              Nearest: {nearestBins[0].distance.toFixed(2)}km
-            </Text>
-          )}
-        </View>
-      </View>
+      {/* Close Button - Top Left */}
+      {onClose && (
+        <TouchableOpacity
+          style={styles.closeButton}
+          onPress={onClose}
+        >
+          <Text style={styles.closeButtonText}>✕</Text>
+        </TouchableOpacity>
+      )}
+
 
       {/* Nearest Bins List */}
       {nearestBins.length > 0 && (
@@ -345,14 +314,10 @@ const styles = StyleSheet.create({
   markerIcon: {
     fontSize: 16,
   },
-  controlsContainer: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-    flexDirection: 'column',
-    alignItems: 'flex-end',
-  },
   closeButton: {
+    position: 'absolute',
+    top: 50,
+    left: 20,
     backgroundColor: 'white',
     borderRadius: 25,
     width: 50,
@@ -364,39 +329,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    marginBottom: 10,
+    zIndex: 1000,
   },
   closeButtonText: {
-    fontSize: 20,
-    color: '#666',
-  },
-  locationButton: {
-    backgroundColor: 'white',
-    borderRadius: 25,
-    width: 50,
-    height: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    marginBottom: 10,
-  },
-  locationButtonText: {
-    fontSize: 20,
-  },
-  statsContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    padding: 8,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  statsText: {
-    fontSize: 12,
-    color: '#2E7D32',
-    fontWeight: '500',
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#333',
   },
   nearestBinsContainer: {
     position: 'absolute',

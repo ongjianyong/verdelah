@@ -3,6 +3,8 @@ import { useLocalSearchParams } from 'expo-router';
 import { collection, getDocs, limit, orderBy, query, where } from 'firebase/firestore';
 import React, { useCallback, useEffect, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import UserProfileModal from '../../components/UserProfileModal';
+import { MonthlyResetService } from '../../services/monthlyResetService';
 import { NeighborhoodLeaderboardService, NeighborhoodStats } from '../../services/neighborhood-leaderboard';
 import { db } from './services/firebase';
 
@@ -11,6 +13,7 @@ interface LeaderboardEntry {
   name: string;
   ecoPoints: number;
   totalRecycled: number;
+  neighborhood?: string;
 }
 
 export default function Leaderboard() {
@@ -23,6 +26,9 @@ export default function Leaderboard() {
     params.tab === 'neighborhood' ? 'neighborhood' : 'points'
   );
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<LeaderboardEntry | null>(null);
+  const [showUserProfile, setShowUserProfile] = useState(false);
+  const [countdownString, setCountdownString] = useState('');
 
   const fetchLeaderboard = useCallback(async () => {
     try {
@@ -102,16 +108,48 @@ export default function Leaderboard() {
     fetchLeaderboard();
   }, [fetchLeaderboard]);
 
+  // Update countdown every minute
+  useEffect(() => {
+    const updateCountdown = () => {
+      try {
+        const countdown = MonthlyResetService.getCountdownString();
+        setCountdownString(countdown);
+      } catch (error) {
+        console.error('Error updating countdown:', error);
+        setCountdownString('Error loading countdown');
+      }
+    };
+
+    updateCountdown(); // Initial update
+    const interval = setInterval(updateCountdown, 60000); // Update every minute
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleUserPress = (user: LeaderboardEntry) => {
+    setSelectedUser(user);
+    setShowUserProfile(true);
+  };
+
+  const handleCloseUserProfile = () => {
+    setShowUserProfile(false);
+    setSelectedUser(null);
+  };
+
   const renderLeaderboardItem = ({ item, index }: { item: LeaderboardEntry; index: number }) => {
     const isCurrentUser = userData?.name === item.name;
     const isFirstPlace = index === 0;
     
     return (
-      <View style={[
-        styles.leaderboardItem, 
-        isCurrentUser && styles.currentUserItem,
-        isFirstPlace && styles.firstPlaceItem
-      ]}>
+      <TouchableOpacity
+        style={[
+          styles.leaderboardItem, 
+          isCurrentUser && styles.currentUserItem,
+          isFirstPlace && styles.firstPlaceItem
+        ]}
+        onPress={() => handleUserPress(item)}
+        activeOpacity={0.7}
+      >
         <View style={styles.rankContainer}>
           <Text style={[styles.rank, isCurrentUser && styles.currentUserText]}>
             #{index + 1}
@@ -134,7 +172,7 @@ export default function Leaderboard() {
           </Text>
           <Text style={styles.scoreLabel}>pts</Text>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
@@ -162,6 +200,14 @@ export default function Leaderboard() {
 
   return (
     <View style={styles.container}>
+      {/* Countdown at the top */}
+      <View style={styles.countdownHeader}>
+        <Text style={styles.countdownTitle}>Monthly Contest</Text>
+        <Text style={styles.countdownInfo}>
+          {MonthlyResetService.getCurrentMonthString()} • {countdownString || 'Loading...'}
+        </Text>
+      </View>
+
       <View style={styles.header}>
         <Text style={styles.title}>Leaderboard</Text>
         <Text style={styles.subtitle}>
@@ -169,7 +215,7 @@ export default function Leaderboard() {
             ? 'Top Neighborhoods' 
             : selectedTab === 'neighborhood-users'
             ? `Top Users in ${userData?.neighborhood || 'Your Neighborhood'}`
-            : 'Top Singapore Eco Warriors'
+            : 'Top Users in Singapore'
           }
         </Text>
       </View>
@@ -188,7 +234,13 @@ export default function Leaderboard() {
           onPress={() => setSelectedTab('neighborhood-users')}
         >
           <Text style={[styles.tabText, selectedTab === 'neighborhood-users' && styles.activeTabText]}>
-            {userData?.neighborhood || 'My Neighborhood'}
+            {userData?.neighborhood ? 
+              (userData.neighborhood.length > 12 ? 
+                userData.neighborhood.substring(0, 12) + '...' : 
+                userData.neighborhood
+              ) : 
+              'My Area'
+            }
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -249,6 +301,13 @@ export default function Leaderboard() {
           />
         )}
       </View>
+
+      {/* User Profile Modal */}
+      <UserProfileModal
+        visible={showUserProfile}
+        onClose={handleCloseUserProfile}
+        user={selectedUser}
+      />
     </View>
   );
 }
@@ -258,9 +317,27 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
   },
+  countdownHeader: {
+    backgroundColor: '#1B5E20',
+    paddingTop: 60,
+    paddingBottom: 15,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+  },
+  countdownTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+    marginBottom: 5,
+  },
+  countdownInfo: {
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontStyle: 'italic',
+  },
   header: {
     backgroundColor: '#2E7D32',
-    paddingTop: 60,
+    paddingTop: 20,
     paddingBottom: 20,
     paddingHorizontal: 20,
   },
@@ -280,7 +357,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginTop: -10,
     borderRadius: 10,
-    padding: 5,
+    padding: 3,
     elevation: 2,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
@@ -289,7 +366,8 @@ const styles = StyleSheet.create({
   },
   tab: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 4,
     alignItems: 'center',
     borderRadius: 8,
   },
@@ -297,9 +375,10 @@ const styles = StyleSheet.create({
     backgroundColor: '#2E7D32',
   },
   tabText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '500',
     color: '#666',
+    textAlign: 'center',
   },
   activeTabText: {
     color: 'white',
