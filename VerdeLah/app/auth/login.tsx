@@ -2,22 +2,20 @@ import { router } from 'expo-router';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import React, { useState } from 'react';
 import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  Dimensions,
-  StatusBar,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 // import { LinearGradient } from 'expo-linear-gradient';
 import { auth } from '../(tabs)/services/firebase';
 
-const { width, height } = Dimensions.get('window');
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');
@@ -59,8 +57,7 @@ export default function LoginScreen() {
                 <Text style={styles.logoEmoji}>🌱</Text>
                 <Text style={styles.title}>VerdeLah</Text>
               </View>
-              <Text style={styles.subtitle}>Singapore's Green Revolution Starts Here</Text>
-              <Text style={styles.welcomeText}>Welcome back, Eco Warrior! 🇸🇬</Text>
+              <Text style={styles.subtitle}>Singapore&apos;s Green Revolution Starts Here</Text>
             </View>
 
 
@@ -68,7 +65,7 @@ export default function LoginScreen() {
             <View style={styles.formCard}>
               <View style={styles.formHeader}>
                 <Text style={styles.formTitle}>Sign In</Text>
-                <Text style={styles.formSubtitle}>Join Singapore's sustainability movement</Text>
+                <Text style={styles.formSubtitle}>Join Singapore&apos;s sustainability movement</Text>
               </View>
 
               <View style={styles.inputContainer}>
@@ -124,16 +121,6 @@ export default function LoginScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Bottom Informational Card */}
-            <View style={styles.infoCard}>
-              <View style={styles.infoHeader}>
-                <Text style={styles.infoIcon}>🌱</Text>
-                <Text style={styles.infoTitle}>Making Singapore Greener</Text>
-              </View>
-              <Text style={styles.infoDescription}>
-                Join thousands of Singaporeans working towards a sustainable future. Every recycled item counts towards our city's green goals.
-              </Text>
-            </View>
 
           </ScrollView>
         </KeyboardAvoidingView>
@@ -162,14 +149,14 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
-    paddingTop: 20,
+    marginBottom: 10,
+    paddingTop: 10,
   },
   logoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
   },
   logoEmoji: {
     fontSize: 48,
@@ -198,7 +185,7 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     padding: 32,
     marginBottom: 20,
-    marginTop: 10,
+    marginTop: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.15,
@@ -281,37 +268,5 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#2E7D32',
     fontWeight: '600',
-  },
-  infoCard: {
-    backgroundColor: 'rgba(240, 248, 240, 0.8)',
-    borderRadius: 16,
-    padding: 20,
-    marginTop: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  infoHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 12,
-  },
-  infoIcon: {
-    fontSize: 20,
-    marginRight: 8,
-  },
-  infoTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: '#2E7D32',
-  },
-  infoDescription: {
-    fontSize: 14,
-    color: '#4CAF50',
-    textAlign: 'center',
-    lineHeight: 20,
   },
 });

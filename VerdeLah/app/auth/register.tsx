@@ -3,23 +3,21 @@ import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import React, { useState } from 'react';
 import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  Dimensions,
-  StatusBar,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
 } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
 // import { LinearGradient } from 'expo-linear-gradient';
 import { auth, db } from '../(tabs)/services/firebase';
 
-const { width, height } = Dimensions.get('window');
 
 // Singapore neighborhoods for the challenge
 const SINGAPORE_NEIGHBORHOODS = [
@@ -62,7 +60,17 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [neighborhood, setNeighborhood] = useState('');
+  const [showNeighborhoodDropdown, setShowNeighborhoodDropdown] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const selectNeighborhood = (selectedNeighborhood: string) => {
+    setNeighborhood(selectedNeighborhood);
+    setShowNeighborhoodDropdown(false);
+  };
+
+  const closeDropdown = () => {
+    setShowNeighborhoodDropdown(false);
+  };
 
   const handleRegister = async () => {
     if (!name || !email || !password || !confirmPassword || !neighborhood) {
@@ -128,17 +136,18 @@ export default function RegisterScreen() {
                 <Text style={styles.logoEmoji}>🌱</Text>
                 <Text style={styles.title}>VerdeLah</Text>
               </View>
-              <Text style={styles.subtitle}>Singapore's Eco Revolution</Text>
+              <Text style={styles.subtitle}>Singapore&apos;s Eco Revolution</Text>
               <Text style={styles.welcomeText}>Join the green movement today!</Text>
             </View>
 
 
             {/* Form Card */}
-            <View style={styles.formCard}>
-              <View style={styles.formHeader}>
-                <Text style={styles.formTitle}>Create Account</Text>
-                <Text style={styles.formSubtitle}>Be part of Singapore's eco community</Text>
-              </View>
+            <TouchableWithoutFeedback onPress={closeDropdown}>
+              <View style={styles.formCard}>
+                <View style={styles.formHeader}>
+                  <Text style={styles.formTitle}>Create Account</Text>
+                  <Text style={styles.formSubtitle}>Be part of Singapore&apos;s eco community</Text>
+                </View>
 
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>Full Name</Text>
@@ -166,21 +175,51 @@ export default function RegisterScreen() {
                 />
               </View>
 
-              <View style={styles.inputContainer}>
+              <View style={[styles.inputContainer, { zIndex: 10 }]}>
                 <Text style={styles.inputLabel}>Neighborhood</Text>
-                <View style={styles.pickerContainer}>
-                  <Picker
-                    selectedValue={neighborhood}
-                    onValueChange={(itemValue) => setNeighborhood(itemValue)}
-                    style={styles.picker}
-                    mode="dropdown"
-                  >
-                    <Picker.Item label="Select your neighborhood" value="" />
-                    {SINGAPORE_NEIGHBORHOODS.map((hood) => (
-                      <Picker.Item key={hood} label={hood} value={hood} />
-                    ))}
-                  </Picker>
-                </View>
+                <TouchableOpacity
+                  style={styles.dropdownButton}
+                  onPress={() => setShowNeighborhoodDropdown(!showNeighborhoodDropdown)}
+                >
+                  <Text style={[
+                    styles.dropdownButtonText,
+                    !neighborhood && styles.placeholderText
+                  ]}>
+                    {neighborhood || 'Select your neighborhood'}
+                  </Text>
+                  <Text style={styles.dropdownArrow}>
+                    {showNeighborhoodDropdown ? '▲' : '▼'}
+                  </Text>
+                </TouchableOpacity>
+                
+                {showNeighborhoodDropdown && (
+                  <View style={styles.dropdownList}>
+                    <ScrollView 
+                      style={styles.dropdownScroll} 
+                      showsVerticalScrollIndicator={true}
+                      nestedScrollEnabled={true}
+                      scrollEnabled={true}
+                    >
+                      {SINGAPORE_NEIGHBORHOODS.map((hood) => (
+                        <TouchableOpacity
+                          key={hood}
+                          style={[
+                            styles.dropdownItem,
+                            neighborhood === hood && styles.selectedDropdownItem
+                          ]}
+                          onPress={() => selectNeighborhood(hood)}
+                        >
+                          <Text style={[
+                            styles.dropdownItemText,
+                            neighborhood === hood && styles.selectedDropdownItemText
+                          ]}>
+                            {hood}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </ScrollView>
+                  </View>
+                )}
               </View>
 
               <View style={styles.inputContainer}>
@@ -233,7 +272,8 @@ export default function RegisterScreen() {
                   Already have an account? <Text style={styles.loginLinkText}>Sign In</Text>
                 </Text>
               </TouchableOpacity>
-            </View>
+              </View>
+            </TouchableWithoutFeedback>
 
           </ScrollView>
         </KeyboardAvoidingView>
@@ -321,6 +361,8 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     marginBottom: 24,
+    zIndex: 1,
+    position: 'relative',
   },
   inputLabel: {
     fontSize: 16,
@@ -330,21 +372,79 @@ const styles = StyleSheet.create({
   },
   input: {
     backgroundColor: '#f8f9fa',
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     borderRadius: 12,
     fontSize: 16,
     borderWidth: 2,
     borderColor: '#e9ecef',
     color: '#333',
+    minHeight: 50,
   },
-  pickerContainer: {
+  // Custom dropdown styles
+  dropdownButton: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#e9ecef',
+    borderRadius: 12,
+    padding: 16,
     backgroundColor: '#f8f9fa',
+    minHeight: 50,
+    zIndex: 2,
+  },
+  dropdownButtonText: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333',
+  },
+  placeholderText: {
+    color: '#999',
+  },
+  dropdownArrow: {
+    fontSize: 18,
+    color: '#666',
+    marginLeft: 10,
+  },
+  dropdownList: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    backgroundColor: 'white',
     borderRadius: 12,
     borderWidth: 2,
     borderColor: '#e9ecef',
+    maxHeight: 200,
+    zIndex: 9999,
+    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
   },
-  picker: {
-    height: 50,
+  dropdownScroll: {
+    maxHeight: 200,
+    backgroundColor: 'white',
+  },
+  dropdownItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  selectedDropdownItem: {
+    backgroundColor: '#E8F5E8',
+    borderBottomColor: '#2E7D32',
+  },
+  dropdownItemText: {
+    fontSize: 16,
+    color: '#333',
+  },
+  selectedDropdownItemText: {
+    fontWeight: 'bold',
+    color: '#2E7D32',
   },
   registerButton: {
     backgroundColor: 'rgba(76, 175, 80, 0.8)', // Translucent green button
