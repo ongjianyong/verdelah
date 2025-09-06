@@ -6,7 +6,7 @@ import { FlatList, RefreshControl, StyleSheet, Text, TouchableOpacity, View } fr
 import UserProfileModal from '../../components/UserProfileModal';
 import { MonthlyResetService } from '../../services/monthlyResetService';
 import { NeighborhoodLeaderboardService, NeighborhoodStats } from '../../services/neighborhood-leaderboard';
-import { db } from './services/firebase';
+import { db } from '../../services/firebase';
 
 interface LeaderboardEntry {
   id: string;

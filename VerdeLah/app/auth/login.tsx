@@ -14,7 +14,7 @@ import {
     View,
 } from 'react-native';
 // import { LinearGradient } from 'expo-linear-gradient';
-import { auth } from '../(tabs)/services/firebase';
+import { auth } from '../../services/firebase';
 
 
 export default function LoginScreen() {

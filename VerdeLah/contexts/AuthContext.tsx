@@ -1,7 +1,7 @@
 import { User, onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth, db } from '../app/(tabs)/services/firebase';
+import { auth, db } from '../services/firebase';
 
 
 interface UserData {

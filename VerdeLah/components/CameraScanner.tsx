@@ -87,7 +87,6 @@ export default function CameraScanner({ visible, onClose, onScanComplete }: Came
         quality: 0.8,
       });
 
-      console.log('Image picker result:', result);
 
       if (!result.canceled && result.assets[0]) {
         onScanComplete(result.assets[0].uri);
@@ -100,17 +99,13 @@ export default function CameraScanner({ visible, onClose, onScanComplete }: Came
   };
 
   const handleRequestPermission = async () => {
-    console.log('handleRequestPermission called');
     try {
       // Use the hook's requestPermission function
       const result = await requestPermission();
-      console.log('Permission request result:', result);
       
       if (result.granted) {
-        console.log('Camera permission granted!');
         // The component should re-render automatically
       } else {
-        console.log('Camera permission denied');
         Alert.alert(
           'Permission Denied',
           'Camera permission was denied. Please enable it in your device settings:\n\n1. Go to Settings → Apps → Expo Start\n2. Tap Permissions → Camera\n3. Enable camera access',

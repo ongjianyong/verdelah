@@ -105,4 +105,3 @@ if (typeof global.URLSearchParams === 'undefined') {
   };
 }
 
-console.log('Enhanced polyfills loaded successfully');

@@ -47,8 +47,6 @@ export default function RecyclingBinMap({ onBinSelected, onClose }: MapProps) {
   }, []);
 
   const findNearestBins = useCallback((userLat: number, userLon: number) => {
-    console.log(` Finding nearest bins from user location: ${userLat}, ${userLon}`);
-    console.log(` Total bins available: ${bins.length}`);
     
     const binsWithDistance = bins.map(bin => ({
       ...bin,
@@ -59,10 +57,6 @@ export default function RecyclingBinMap({ onBinSelected, onClose }: MapProps) {
       .sort((a, b) => (a.distance || 0) - (b.distance || 0))
       .slice(0, 20);
 
-    console.log(`📍 Found ${nearest.length} nearest bins`);
-    nearest.forEach((bin, index) => {
-      console.log(`${index + 1}. ${bin.name} - ${bin.distance?.toFixed(2)}km`);
-    });
 
     setNearestBins(nearest);
   }, [bins]);

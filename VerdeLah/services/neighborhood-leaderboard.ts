@@ -1,5 +1,5 @@
 import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
-import { db } from '../app/(tabs)/services/firebase';
+import { db } from './firebase';
 
 export interface NeighborhoodStats {
   name: string;

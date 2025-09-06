@@ -23,7 +23,6 @@ export const loadRecyclingBinsFromGeoJSON = async (): Promise<RecyclingBin[]> =>
   try {
     // For now, use sample data since even the processed file is too large for asset registry
     // TODO: Implement server-side API or chunked loading for full dataset
-    console.log('Loading sample recycling bins data...');
     return getSampleRecyclingBins();
   } catch (error) {
     console.error('Error loading bins data:', error);

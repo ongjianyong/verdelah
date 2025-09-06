@@ -10,7 +10,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { db } from '../app/(tabs)/services/firebase';
+import { db } from '../services/firebase';
 import { useAuth } from '../contexts/AuthContext';
 import { RecyclingBin } from '../services/geojson-loader';
 

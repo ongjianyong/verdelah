@@ -470,10 +470,7 @@ const MATERIAL_DATABASE = {
  * @returns DetectedItem or null if no match found
  */
 export function mapRekognitionToDetectedItem(labels: RekognitionLabel[], imageUri: string, itemDatabase: DetectedItem[]): DetectedItem | null {
-  console.log('mapRekognitionToDetectedItem called with:', labels, 'labels and', itemDatabase, 'items');
-  
   if (!labels || labels.length === 0) {
-    console.log('No labels provided to mapRekognitionToDetectedItem');
     return null;
   }
 
@@ -519,7 +516,6 @@ export function mapRekognitionToDetectedItem(labels: RekognitionLabel[], imageUr
  * @returns DetectedItem or null if no specific item found
  */
 function findSpecificItem(labels: RekognitionLabel[], itemDatabase: DetectedItem[]): DetectedItem | null {
-  console.log('findSpecificItem called with:', labels.length, 'labels and', itemDatabase.length, 'items in database');
   
   // Create a map of label names to potential items
   const labelToItems: { [key: string]: string[] } = {
@@ -569,13 +565,9 @@ function findSpecificItem(labels: RekognitionLabel[], itemDatabase: DetectedItem
     current[1] > prev[1] ? current : prev
   );
   
-  console.log('Item scores:', itemScores);
-  console.log('Best match:', bestMatch);
   
   if (bestMatch && bestMatch[1] > 50) { // Minimum confidence threshold
-    console.log('Looking for item with ID:', bestMatch[0]);
     const item = itemDatabase.find((item: any) => item.id === bestMatch[0]);
-    console.log('Found item:', item ? item.name : 'not found');
     if (item) {
       return {
         ...item,
@@ -584,7 +576,6 @@ function findSpecificItem(labels: RekognitionLabel[], itemDatabase: DetectedItem
     }
   }
   
-  console.log('No specific item found, returning null');
   return null;
 }
 

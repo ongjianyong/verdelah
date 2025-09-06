@@ -9,7 +9,7 @@ import CameraScanner from '../../components/CameraScanner';
 import RecyclingBinMap from '../../components/RecyclingBinMap';
 import RecyclingInfoModal from '../../components/RecyclingInfoModal';
 import { DetectedItem, detectItem } from '../../services/itemDetection';
-import { ECO_TIPS } from './services/ecotips';
+import { ECO_TIPS } from '../../services/ecotips';
 
 
 

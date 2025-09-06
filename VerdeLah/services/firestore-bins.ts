@@ -1,5 +1,5 @@
 import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore';
-import { db } from '../app/(tabs)/services/firebase';
+import { db } from './firebase';
 import { RecyclingBin, calculateDistance } from './geojson-loader';
 
 export interface FirestoreBin extends RecyclingBin {
@@ -18,7 +18,6 @@ export const loadNearbyBinsFromFirestore = async (
   radiusKm: number = 10
 ): Promise<RecyclingBin[]> => {
   try {
-    console.log(`🔍 Loading nearest 20 bins from Firestore (${radiusKm}km radius)`);
     
     // Get more bins initially to ensure we have enough within radius
     const binsRef = collection(db, 'recyclingBins');
@@ -28,12 +27,11 @@ export const loadNearbyBinsFromFirestore = async (
     const allBins: FirestoreBin[] = querySnapshot.docs.map(doc => {
       const data = doc.data() as FirestoreBin;
       return {
-        id: doc.id,
-        ...data
+        ...data,
+        id: doc.id
       } as FirestoreBin;
     });
 
-    console.log(`📦 Loaded ${allBins.length} bins from Firestore`);
 
     // Calculate distances and filter by radius
     const binsWithDistance = allBins
@@ -45,19 +43,13 @@ export const loadNearbyBinsFromFirestore = async (
       .sort((a, b) => (a.distance || 0) - (b.distance || 0))
       .slice(0, 20); // Return exactly 20 closest
 
-    console.log(`✅ Returning ${binsWithDistance.length} nearest bins within ${radiusKm}km`);
     
-    // Log top 5 for debugging
-    binsWithDistance.slice(0, 5).forEach((bin, index) => {
-      console.log(`${index + 1}. ${bin.name} - ${bin.distance?.toFixed(2)}km`);
-    });
 
     return binsWithDistance;
 
   } catch (error) {
     console.error('❌ Error loading bins from Firestore:', error);
     // Fallback to sample data
-    console.log('🔄 Falling back to sample data...');
     return getSampleRecyclingBins();
   }
 };

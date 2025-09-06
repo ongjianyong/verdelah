@@ -1445,18 +1445,13 @@ export async function detectItem(imageUri: string): Promise<DetectedItem | null>
     const { hasValidCredentials } = await import('./awsConfig');
     
     if (!hasValidCredentials()) {
-      console.log('AWS credentials not found or invalid, using mock detection');
       return detectItemMock(imageUri);
     }
     
     // Try to use AWS Rekognition with improved polyfills
     try {
-      console.log('Attempting to import AWS Rekognition module...');
       const awsRekognition = await import('./awsRekognition');
-      console.log('AWS Rekognition module imported successfully:', Object.keys(awsRekognition));
-      
       const itemMapping = await import('./itemMapping');
-      console.log('Item mapping module imported successfully:', Object.keys(itemMapping));
       
       // Check if the functions exist
       if (!awsRekognition.analyzeImageWithRekognition) {
@@ -1474,25 +1469,18 @@ export async function detectItem(imageUri: string): Promise<DetectedItem | null>
         throw new Error('Item mapping function not properly imported');
       }
       
-      console.log('All functions found, proceeding with AWS Rekognition...');
-      
       // Analyze image with AWS Rekognition
       const rekognitionResult = await awsRekognition.analyzeImageWithRekognition(imageUri);
-      console.log('Rekognition result:', rekognitionResult);
-      console.log('Rekognition labels:', rekognitionResult.labels);
       
       // Check if labels exist
       if (!rekognitionResult.labels || !Array.isArray(rekognitionResult.labels)) {
-        console.log('No labels returned from AWS Rekognition');
         return detectItemMock(imageUri);
       }
       
       // Get relevant labels for recycling detection
       const relevantLabels = awsRekognition.getRelevantLabels(rekognitionResult.labels);
-      console.log('Relevant labels:', relevantLabels);
       
       if (relevantLabels.length === 0) {
-        console.log('No relevant labels found for recycling detection');
         return detectItemMock(imageUri);
       }
       

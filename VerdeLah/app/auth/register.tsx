@@ -16,7 +16,7 @@ import {
     View,
 } from 'react-native';
 // import { LinearGradient } from 'expo-linear-gradient';
-import { auth, db } from '../(tabs)/services/firebase';
+import { auth, db } from '../../services/firebase';
 
 
 // Singapore neighborhoods for the challenge

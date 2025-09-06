@@ -8,7 +8,7 @@ import {
     TouchableOpacity,
     View
 } from 'react-native';
-import { db } from '../app/(tabs)/services/firebase';
+import { db } from '../services/firebase';
 import { RecyclingBin } from '../services/geojson-loader';
 
 interface BinLeaderboardProps {
@@ -35,7 +35,6 @@ export default function BinLeaderboard({ bin, onClose, visible = true }: BinLead
 
   const loadBinLeaderboard = useCallback(async () => {
     try {
-      console.log('📊 Loading leaderboard for bin:', bin.id);
       setLoading(true);
       
       // Get bin statistics
@@ -44,13 +43,11 @@ export default function BinLeaderboard({ bin, onClose, visible = true }: BinLead
       
       if (binDoc.exists()) {
         const binData = binDoc.data();
-        console.log('📈 Bin stats loaded:', binData);
         setBinStats({
           totalRecycled: binData.totalRecycles || 0,
           totalUsers: binData.totalUsers || 0,
         });
       } else {
-        console.log('⚠️ Bin document does not exist');
       }
 
       // Load user recycling records for this specific bin
@@ -62,9 +59,7 @@ export default function BinLeaderboard({ bin, onClose, visible = true }: BinLead
           orderBy('recycledAt', 'desc')
         );
         
-        console.log('🔍 Querying userRecycling collection for binId:', bin.id);
         const querySnapshot = await getDocs(q);
-        console.log('📋 Found', querySnapshot.size, 'recycling records');
         
         const userRecyclingData: { [userId: string]: any[] } = {};
         
@@ -117,7 +112,6 @@ export default function BinLeaderboard({ bin, onClose, visible = true }: BinLead
         }));
         
       } catch (queryError) {
-        console.log('⚠️ userRecycling collection query failed, showing empty state:', queryError);
         // If the collection doesn't exist or query fails, show empty state
         setLeaderboard([]);
       }
@@ -132,7 +126,6 @@ export default function BinLeaderboard({ bin, onClose, visible = true }: BinLead
 
   useEffect(() => {
     if (visible && bin.id) {
-      console.log('🔄 BinLeaderboard useEffect triggered:', { visible, binId: bin.id });
       loadBinLeaderboard();
     }
   }, [bin.id, visible, loadBinLeaderboard]);
@@ -177,7 +170,6 @@ export default function BinLeaderboard({ bin, onClose, visible = true }: BinLead
     return null;
   }
 
-  console.log('🎭 Rendering BinLeaderboard overlay:', { visible, leaderboardLength: leaderboard.length, binName: bin.name });
 
   return (
     <View style={styles.overlay}>

@@ -7,23 +7,17 @@ let DetectLabelsCommand: any;
 let RekognitionClient: any;
 
 // Dynamic import to handle potential AWS SDK issues
-let awsSdkAvailable = false;
 
 // Initialize AWS SDK
 async function initializeAwsSdk() {
   try {
     const awsSdk = await import('@aws-sdk/client-rekognition');
-    console.log('AWS SDK loaded, checking classes...');
-    console.log('DetectLabelsCommand:', typeof awsSdk.DetectLabelsCommand);
-    console.log('RekognitionClient:', typeof awsSdk.RekognitionClient);
 
     if (awsSdk.DetectLabelsCommand && awsSdk.RekognitionClient) {
       DetectLabelsCommand = awsSdk.DetectLabelsCommand;
       RekognitionClient = awsSdk.RekognitionClient;
-      awsSdkAvailable = true;
-      console.log('AWS SDK classes loaded successfully, awsSdkAvailable set to:', awsSdkAvailable);
     } else {
-      console.error('AWS SDK classes not properly loaded - DetectLabelsCommand:', !!awsSdk.DetectLabelsCommand, 'RekognitionClient:', !!awsSdk.RekognitionClient);
+      console.error('AWS SDK classes not properly loaded');
       // Fallback implementations
       DetectLabelsCommand = class { };
       RekognitionClient = class { 
@@ -70,47 +64,28 @@ export interface RekognitionResult {
  */
 export async function analyzeImageWithRekognition(imageUri: string): Promise<RekognitionResult> {
   try {
-    console.log('Starting AWS Rekognition analysis...');
-    
     // Ensure AWS SDK is initialized
     if (!DetectLabelsCommand || !RekognitionClient) {
-      console.log('AWS SDK not yet initialized, initializing now...');
       await initializeAwsSdk();
     }
     
-    console.log('awsSdkAvailable:', awsSdkAvailable);
-    console.log('DetectLabelsCommand type:', typeof DetectLabelsCommand);
-    console.log('RekognitionClient type:', typeof RekognitionClient);
-    
-    // Check if AWS SDK is available - be more lenient with the check
+    // Check if AWS SDK is available
     if (!DetectLabelsCommand || !RekognitionClient) {
-      throw new Error('AWS SDK classes not available - DetectLabelsCommand: ' + typeof DetectLabelsCommand + ', RekognitionClient: ' + typeof RekognitionClient);
-    }
-    
-    // Additional check for the send method
-    if (typeof RekognitionClient.prototype.send !== 'function') {
-      console.warn('RekognitionClient does not have send method on prototype, but continuing...');
+      throw new Error('AWS SDK classes not available');
     }
     
     // Convert image URI to base64 if needed
-    console.log('Converting image to bytes...');
     const imageBytes = await convertImageToBytes(imageUri);
-    console.log('Image bytes length:', imageBytes.length);
     
     // Create Rekognition client with credentials
-    console.log('Creating Rekognition client...');
     const rekognitionClient = new RekognitionClient({
       region: AWS_REGION,
       credentials: getCredentials(),
     });
     
-    console.log('Rekognition client created:', typeof rekognitionClient);
-    console.log('Rekognition client send method:', typeof rekognitionClient.send);
-    
     // Verify the client has the send method
     if (typeof rekognitionClient.send !== 'function') {
-      console.error('RekognitionClient does not have send method - type: ' + typeof rekognitionClient.send);
-      throw new Error('RekognitionClient does not have send method - type: ' + typeof rekognitionClient.send);
+      throw new Error('RekognitionClient does not have send method');
     }
     
     const command = new DetectLabelsCommand({
@@ -121,9 +96,7 @@ export async function analyzeImageWithRekognition(imageUri: string): Promise<Rek
       MinConfidence: 50, // Minimum confidence threshold
     });
 
-    console.log('Sending command to AWS Rekognition...');
     const response = await rekognitionClient.send(command);
-    console.log('AWS Rekognition response received:', response);
     
     return {
       labels: response.Labels || [],
