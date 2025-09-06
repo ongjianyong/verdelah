@@ -1,6 +1,7 @@
 import { router } from 'expo-router';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import React, { useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import {
     Alert,
     KeyboardAvoidingView,
@@ -18,6 +19,7 @@ import { auth } from '../../services/firebase';
 
 
 export default function LoginScreen() {
+  const { resetPassword } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -36,6 +38,23 @@ export default function LoginScreen() {
       Alert.alert('Login Failed', error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      Alert.alert('Error', 'Please enter your email address first');
+      return;
+    }
+    
+    try {
+      await resetPassword(email);
+      Alert.alert(
+        'Password Reset Sent', 
+        'Check your email for password reset instructions. If you\'re using the Gmail mobile app, the link might not be clickable - try opening the email in your web browser instead. You can close this app and return after resetting your password.'
+      );
+    } catch (error: any) {
+      Alert.alert('Error', error.message || 'Failed to send reset email');
     }
   };
 
@@ -103,6 +122,13 @@ export default function LoginScreen() {
                 <Text style={styles.loginButtonText}>
                   {loading ? 'Signing In...' : 'Sign In'}
                 </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.forgotPasswordButton}
+                onPress={handleForgotPassword}
+              >
+                <Text style={styles.forgotPasswordText}>Forgot Password?</Text>
               </TouchableOpacity>
 
               <View style={styles.divider}>
@@ -268,5 +294,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#2E7D32',
     fontWeight: '600',
+  },
+  forgotPasswordButton: {
+    alignItems: 'center',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  forgotPasswordText: {
+    color: '#2E7D32',
+    fontSize: 14,
+    fontWeight: '500',
+    textDecorationLine: 'underline',
   },
 });
