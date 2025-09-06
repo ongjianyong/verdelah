@@ -1,51 +1,66 @@
 // AWS Rekognition Service
 // This service handles image analysis using AWS Rekognition
 
+import { getCredentials, AWS_REGION } from './awsConfig';
+
 let DetectLabelsCommand: any;
 let RekognitionClient: any;
 
 // Dynamic import to handle potential AWS SDK issues
 let awsSdkAvailable = false;
 
-// Try to load AWS SDK
-const awsSdk = require('@aws-sdk/client-rekognition');
-console.log('AWS SDK loaded, checking classes...');
-console.log('DetectLabelsCommand:', typeof awsSdk.DetectLabelsCommand);
-console.log('RekognitionClient:', typeof awsSdk.RekognitionClient);
+// Initialize AWS SDK
+async function initializeAwsSdk() {
+  try {
+    const awsSdk = await import('@aws-sdk/client-rekognition');
+    console.log('AWS SDK loaded, checking classes...');
+    console.log('DetectLabelsCommand:', typeof awsSdk.DetectLabelsCommand);
+    console.log('RekognitionClient:', typeof awsSdk.RekognitionClient);
 
-if (awsSdk.DetectLabelsCommand && awsSdk.RekognitionClient) {
-  DetectLabelsCommand = awsSdk.DetectLabelsCommand;
-  RekognitionClient = awsSdk.RekognitionClient;
-  awsSdkAvailable = true;
-  console.log('AWS SDK classes loaded successfully, awsSdkAvailable set to:', awsSdkAvailable);
-} else {
-  console.error('AWS SDK classes not properly loaded - DetectLabelsCommand:', !!awsSdk.DetectLabelsCommand, 'RekognitionClient:', !!awsSdk.RekognitionClient);
-  // Fallback implementations
-  DetectLabelsCommand = class { constructor() {} };
-  RekognitionClient = class { 
-    constructor() {} 
-    send() { 
-      throw new Error('AWS SDK not available'); 
-    } 
-  };
+    if (awsSdk.DetectLabelsCommand && awsSdk.RekognitionClient) {
+      DetectLabelsCommand = awsSdk.DetectLabelsCommand;
+      RekognitionClient = awsSdk.RekognitionClient;
+      awsSdkAvailable = true;
+      console.log('AWS SDK classes loaded successfully, awsSdkAvailable set to:', awsSdkAvailable);
+    } else {
+      console.error('AWS SDK classes not properly loaded - DetectLabelsCommand:', !!awsSdk.DetectLabelsCommand, 'RekognitionClient:', !!awsSdk.RekognitionClient);
+      // Fallback implementations
+      DetectLabelsCommand = class { };
+      RekognitionClient = class { 
+        send() { 
+          throw new Error('AWS SDK not available'); 
+        } 
+      };
+    }
+  } catch (error) {
+    console.error('Failed to load AWS SDK:', error);
+    // Fallback implementations
+    DetectLabelsCommand = class { };
+    RekognitionClient = class { 
+      send() { 
+        throw new Error('AWS SDK not available'); 
+      } 
+    };
+  }
 }
 
-import { getCredentials, AWS_REGION } from './awsConfig';
+// Initialize AWS SDK immediately
+initializeAwsSdk();
 
 export interface RekognitionLabel {
   Name: string;
   Confidence: number;
-  Categories?: Array<{
+  Categories?: {
     Name: string;
-  }>;
+  }[];
 }
 
 export interface RekognitionResult {
   labels: RekognitionLabel[];
-  dominantColors?: Array<{
+  dominantColors?: {
     name: string;
     confidence: number;
-  }>;
+  }[];
 }
 
 /**
@@ -56,6 +71,13 @@ export interface RekognitionResult {
 export async function analyzeImageWithRekognition(imageUri: string): Promise<RekognitionResult> {
   try {
     console.log('Starting AWS Rekognition analysis...');
+    
+    // Ensure AWS SDK is initialized
+    if (!DetectLabelsCommand || !RekognitionClient) {
+      console.log('AWS SDK not yet initialized, initializing now...');
+      await initializeAwsSdk();
+    }
+    
     console.log('awsSdkAvailable:', awsSdkAvailable);
     console.log('DetectLabelsCommand type:', typeof DetectLabelsCommand);
     console.log('RekognitionClient type:', typeof RekognitionClient);

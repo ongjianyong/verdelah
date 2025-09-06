@@ -271,7 +271,10 @@ export default function RecyclingBinMap({ onBinSelected, onClose }: MapProps) {
         <NearestBinsList
           bins={nearestBins}
           onBinPress={handleBinPress}
-          userLocation={userLocation}
+          userLocation={userLocation ? {
+            latitude: userLocation.coords.latitude,
+            longitude: userLocation.coords.longitude
+          } : undefined}
           onClose={() => setShowNearestBins(false)}
         />
       )}

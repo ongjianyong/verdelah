@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -26,16 +26,6 @@ export default function RecyclingInfoModal({ visible, onClose, detectedItem, onS
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [bookmarks, setBookmarks] = useState<DetectedItem[]>([]);
 
-  useEffect(() => {
-    loadBookmarks();
-  }, []);
-
-  useEffect(() => {
-    if (detectedItem) {
-      checkIfBookmarked();
-    }
-  }, [detectedItem, bookmarks]);
-
   const loadBookmarks = async () => {
     try {
       const storedBookmarks = await AsyncStorage.getItem('recycling_bookmarks');
@@ -48,14 +38,24 @@ export default function RecyclingInfoModal({ visible, onClose, detectedItem, onS
     }
   };
 
-  const checkIfBookmarked = () => {
+  const checkIfBookmarked = useCallback(() => {
     if (!detectedItem) return;
     const isBookmarkedItem = bookmarks.some(
       bookmark => bookmark.name === detectedItem.name && 
                   bookmark.material === detectedItem.material
     );
     setIsBookmarked(isBookmarkedItem);
-  };
+  }, [detectedItem, bookmarks]);
+
+  useEffect(() => {
+    loadBookmarks();
+  }, []);
+
+  useEffect(() => {
+    if (detectedItem) {
+      checkIfBookmarked();
+    }
+  }, [detectedItem, bookmarks, checkIfBookmarked]);
 
   const toggleBookmark = async () => {
     if (!detectedItem) return;

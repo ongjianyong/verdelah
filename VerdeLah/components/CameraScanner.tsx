@@ -9,7 +9,7 @@ import {
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
-import { CameraView, CameraType, useCameraPermissions, Camera } from 'expo-camera';
+import { CameraView, CameraType, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -19,7 +19,7 @@ interface CameraScannerProps {
   onScanComplete: (imageUri: string) => void;
 }
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 export default function CameraScanner({ visible, onClose, onScanComplete }: CameraScannerProps) {
   const [facing, setFacing] = useState<CameraType>('back');
@@ -147,7 +147,7 @@ export default function CameraScanner({ visible, onClose, onScanComplete }: Came
               VerdeLah needs access to your camera to scan items for recycling information.
             </Text>
             <Text style={styles.permissionSubtext}>
-              If you've disabled camera access in your phone's settings, please:
+              If you&apos;ve disabled camera access in your phone&apos;s settings, please:
               {'\n'}1. Go to Settings → Apps → Expo Start
               {'\n'}2. Tap Permissions → Camera
               {'\n'}3. Enable camera access

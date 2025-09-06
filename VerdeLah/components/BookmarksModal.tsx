@@ -6,7 +6,6 @@ import {
   StyleSheet,
   Modal,
   ScrollView,
-  Dimensions,
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,8 +21,6 @@ interface BookmarksModalProps {
   onClose: () => void;
   onViewItem: (item: DetectedItem) => void;
 }
-
-const { width } = Dimensions.get('window');
 
 export default function BookmarksModal({ visible, onClose, onViewItem }: BookmarksModalProps) {
   const [bookmarks, setBookmarks] = useState<BookmarkedItem[]>([]);

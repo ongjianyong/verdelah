@@ -23,7 +23,7 @@ interface BinInfoModalProps {
 }
 
 export default function BinInfoModal({ visible, bin, onClose, onRecycleRecorded, onShowLeaderboard }: BinInfoModalProps) {
-  const { user, userData, refreshUserData } = useAuth();
+  const { user, refreshUserData } = useAuth();
   const [recording, setRecording] = useState(false);
 
   const handleRecordRecycling = async () => {

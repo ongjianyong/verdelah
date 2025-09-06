@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 import { NeighborhoodLeaderboardService, NeighborhoodStats } from '../services/neighborhood-leaderboard';
@@ -19,11 +19,7 @@ export default function NeighborhoodChallenge({ onViewLeaderboard }: Neighborhoo
   const [currentWinner, setCurrentWinner] = useState<NeighborhoodStats | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    fetchNeighborhoodData();
-  }, []);
-
-  const fetchNeighborhoodData = async () => {
+  const fetchNeighborhoodData = useCallback(async () => {
     try {
       setLoading(true);
       const [leaderboard, winner] = await Promise.all([
@@ -44,7 +40,11 @@ export default function NeighborhoodChallenge({ onViewLeaderboard }: Neighborhoo
     } finally {
       setLoading(false);
     }
-  };
+  }, [userData?.neighborhood, user?.uid]);
+
+  useEffect(() => {
+    fetchNeighborhoodData();
+  }, [fetchNeighborhoodData]);
 
   const getUserNeighborhoodStats = () => {
     if (!userData?.neighborhood) return null;
@@ -56,7 +56,7 @@ export default function NeighborhoodChallenge({ onViewLeaderboard }: Neighborhoo
     return neighborhoodStats.findIndex(hood => hood.name === userNeighborhoodRank.neighborhood) + 1;
   };
 
-  const onRefresh = React.useCallback(async () => {
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
       await fetchNeighborhoodData();
@@ -65,7 +65,7 @@ export default function NeighborhoodChallenge({ onViewLeaderboard }: Neighborhoo
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [fetchNeighborhoodData]);
 
   if (loading) {
     return (

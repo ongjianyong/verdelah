@@ -5,8 +5,6 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
-  Dimensions,
-  ScrollView,
 } from 'react-native';
 import { RecyclingBin } from '../services/geojson-loader';
 
@@ -20,8 +18,6 @@ interface NearestBinsListProps {
 interface BinWithDistance extends RecyclingBin {
   distance?: number;
 }
-
-const { width } = Dimensions.get('window');
 
 export default function NearestBinsList({ 
   bins, 
