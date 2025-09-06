@@ -95,6 +95,11 @@ export default function RegisterScreen() {
       return;
     }
 
+    if (username.length > 16) {
+      Alert.alert('Error', 'Username must be 16 characters or less');
+      return;
+    }
+
     if (!/^[a-zA-Z0-9_]+$/.test(username)) {
       Alert.alert('Error', 'Username can only contain letters, numbers, and underscores');
       return;
@@ -187,6 +192,7 @@ export default function RegisterScreen() {
                   placeholderTextColor="#999"
                   value={username}
                   onChangeText={setUsername}
+                  maxLength={16}
                   autoCapitalize="none"
                   autoCorrect={false}
                 />

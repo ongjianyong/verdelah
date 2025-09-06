@@ -86,6 +86,11 @@ export default function Profile() {
       return;
     }
 
+    if (editingUsername.length > 16) {
+      Alert.alert('Error', 'Username must be 16 characters or less');
+      return;
+    }
+
     if (!/^[a-zA-Z0-9_]+$/.test(editingUsername)) {
       Alert.alert('Error', 'Username can only contain letters, numbers, and underscores');
       return;
@@ -212,6 +217,7 @@ export default function Profile() {
                 value={editingUsername}
                 onChangeText={setEditingUsername}
                 placeholder="Enter your username"
+                maxLength={16}
                 autoCapitalize="none"
                 autoCorrect={false}
               />
