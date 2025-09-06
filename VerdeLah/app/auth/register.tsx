@@ -185,13 +185,20 @@ export default function RegisterScreen() {
                 </View>
 
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>Username</Text>
+                <View style={styles.labelContainer}>
+                  <Text style={styles.inputLabel}>Username</Text>
+                  <Text style={styles.characterCount}>{username.length}/16</Text>
+                </View>
                 <TextInput
                   style={styles.input}
                   placeholder="Choose a unique username"
                   placeholderTextColor="#999"
                   value={username}
-                  onChangeText={setUsername}
+                  onChangeText={(text) => {
+                    if (text.length <= 16) {
+                      setUsername(text);
+                    }
+                  }}
                   maxLength={16}
                   autoCapitalize="none"
                   autoCorrect={false}
@@ -406,6 +413,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#333',
     marginBottom: 8,
+  },
+  labelContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  characterCount: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500',
   },
   input: {
     backgroundColor: '#f8f9fa',

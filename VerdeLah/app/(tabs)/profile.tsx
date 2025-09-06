@@ -211,11 +211,18 @@ export default function Profile() {
             <Text style={styles.modalTitle}>Edit Profile</Text>
             
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>Username</Text>
+              <View style={styles.labelContainer}>
+                <Text style={styles.inputLabel}>Username</Text>
+                <Text style={styles.characterCount}>{editingUsername.length}/16</Text>
+              </View>
               <TextInput
                 style={styles.input}
                 value={editingUsername}
-                onChangeText={setEditingUsername}
+                onChangeText={(text) => {
+                  if (text.length <= 16) {
+                    setEditingUsername(text);
+                  }
+                }}
                 placeholder="Enter your username"
                 maxLength={16}
                 autoCapitalize="none"
@@ -442,6 +449,17 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: '#333',
     marginBottom: 8,
+  },
+  labelContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  characterCount: {
+    fontSize: 12,
+    color: '#666',
+    fontWeight: '500',
   },
   input: {
     backgroundColor: '#f5f5f5',
