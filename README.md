@@ -16,7 +16,7 @@ An eco-friendly mobile app that encourages sustainable habits through AI-powered
 - **Navigation**: Expo Router
 - **Styling**: React Native StyleSheet
 
-##  Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -66,9 +66,15 @@ An eco-friendly mobile app that encourages sustainable habits through AI-powered
    - Simply proceed to step 4
 
 4. **Start the development server**
+
    ```bash
    npm start
    ```
+
+5. **Run the app**
+
+   - Download [Expo Go](https://expo.dev/client) from App Store/Google Play
+   - Scan the QR code that appears in your terminal
 
 ### Firebase Setup (For Public Repository Users)
 
