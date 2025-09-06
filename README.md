@@ -1,27 +1,22 @@
-# VerdeLah! 
+# VerdeLah!
 
 An eco-friendly mobile app that encourages sustainable habits through AI-powered item scanning, gamification, and community challenges.
 
-##  Features
+## Main Features
 
 - **AI Item Scanning**: Scan any item to get recycling information and eco-friendly alternatives
-- **User Authentication**: Secure login/register with Firebase Auth
 - **Gamification**: Earn Eco Points and compete on leaderboards
-- **Community Features**: Neighborhood challenges and eco-circles
-- **Real-time Data**: Live leaderboards and user statistics
-- **Firebase Integration**: Secure backend with Firestore database
+- **Community Features**: Neighborhood-specific challenges
 
-## 🛠 Tech Stack
+## Tech Stack
 
 - **Frontend**: React Native with Expo
 - **Backend**: Firebase (Auth + Firestore)
+- **AI/ML**: AWS Rekognition for item recognition
 - **Navigation**: Expo Router
-- **State Management**: React Context
 - **Styling**: React Native StyleSheet
-- **Environment Variables**: react-native-dotenv
 
-
-## 🚀 Getting Started
+##  Getting Started
 
 ### Prerequisites
 
@@ -47,6 +42,8 @@ An eco-friendly mobile app that encourages sustainable habits through AI-powered
 
 3. **Set up environment variables**
 
+   **For Public Repository (General Users):**
+
    ```bash
    cp .env.example .env
    ```
@@ -62,16 +59,20 @@ An eco-friendly mobile app that encourages sustainable habits through AI-powered
    FIREBASE_APP_ID=your_app_id
    ```
 
+   **For Hackathon Judging:**
+
+   - Environment variables are pre-configured
+   - No additional setup required
+   - Simply proceed to step 4
+
 4. **Start the development server**
    ```bash
    npm start
    ```
 
-### Firebase Setup
+### Firebase Setup (For Public Repository Users)
 
 1. Create a Firebase project at [Firebase Console](https://console.firebase.google.com/)
 2. Enable Authentication (Email/Password)
 3. Create Firestore Database (start in test mode)
 4. Get your config values and add them to `.env`
-
-
