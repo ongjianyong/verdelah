@@ -7,6 +7,7 @@ import {
     StatusBar,
     StyleSheet,
     Text,
+    TouchableOpacity,
     View
 } from 'react-native';
 
@@ -87,13 +88,6 @@ export default function OnboardingScreen() {
     const index = event.nativeEvent.contentOffset.x / slideSize;
     const roundIndex = Math.round(index);
     setCurrentIndex(roundIndex);
-    
-    // Auto-navigate to login when reaching the last slide
-    if (roundIndex === onboardingData.length - 1) {
-      setTimeout(() => {
-        handleOnboardingComplete();
-      }, 1000); // Small delay to let user see the last slide
-    }
   };
 
   const currentSlide = onboardingData[currentIndex];
@@ -122,10 +116,21 @@ export default function OnboardingScreen() {
               <Text style={styles.title}>{slide.title}</Text>
               <Text style={styles.subtitle}>{slide.subtitle}</Text>
               <Text style={styles.description}>{slide.description}</Text>
+              
               {index === 0 && (
                 <Animated.Text style={[styles.swipeHint, { opacity: pulseAnim }]}>
                   Swipe right to continue →
                 </Animated.Text>
+              )}
+              
+              {index === onboardingData.length - 1 && (
+                <TouchableOpacity 
+                  style={[styles.getStartedButton, { backgroundColor: slide.color }]}
+                  onPress={handleOnboardingComplete}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.getStartedButtonText}>Get Started</Text>
+                </TouchableOpacity>
               )}
             </View>
           </View>
@@ -232,5 +237,22 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 2,
     elevation: 2,
+  },
+  getStartedButton: {
+    paddingHorizontal: 40,
+    paddingVertical: 16,
+    borderRadius: 25,
+    marginTop: 30,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  getStartedButtonText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
