@@ -6,6 +6,7 @@ import { loadNearbyBinsFromFirestore } from '../services/firestore-bins';
 import { RecyclingBin, calculateDistance, loadRecyclingBinsFromGeoJSON } from '../services/geojson-loader';
 import BinInfoModal from './BinInfoModal';
 import BinLeaderboard from './BinLeaderboard';
+import NearestBinsList from './NearestBinsList';
 
 interface MapProps {
   onBinSelected?: (bin: RecyclingBin) => void;
@@ -20,6 +21,7 @@ export default function RecyclingBinMap({ onBinSelected, onClose }: MapProps) {
   const [locationPermission, setLocationPermission] = useState<boolean>(false);
   const [showModal, setShowModal] = useState(false);
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [showNearestBins, setShowNearestBins] = useState(false);
   const [nearestBins, setNearestBins] = useState<RecyclingBin[]>([]);
   const mapRef = useRef<MapView>(null);
 
@@ -55,7 +57,7 @@ export default function RecyclingBinMap({ onBinSelected, onClose }: MapProps) {
 
     const nearest = binsWithDistance
       .sort((a, b) => (a.distance || 0) - (b.distance || 0))
-      .slice(0, 5);
+      .slice(0, 20);
 
     console.log(`📍 Found ${nearest.length} nearest bins`);
     nearest.forEach((bin, index) => {
@@ -233,12 +235,20 @@ export default function RecyclingBinMap({ onBinSelected, onClose }: MapProps) {
       )}
 
 
-      {/* Nearest Bins List */}
-      {nearestBins.length > 0 && (
+      {/* Nearest Bins Quick View */}
+      {nearestBins.length > 0 && !showNearestBins && (
         <View style={styles.nearestBinsContainer}>
-          <Text style={styles.nearestBinsTitle}>📍 Nearest Bins</Text>
+          <View style={styles.nearestBinsHeader}>
+            <Text style={styles.nearestBinsTitle}>📍 Nearest Bins ({nearestBins.length})</Text>
+            <TouchableOpacity 
+              style={styles.viewAllButton}
+              onPress={() => setShowNearestBins(true)}
+            >
+              <Text style={styles.viewAllButtonText}>View All</Text>
+            </TouchableOpacity>
+          </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-            {nearestBins.map((bin, index) => (
+            {nearestBins.slice(0, 5).map((bin, index) => (
               <TouchableOpacity
                 key={bin.id}
                 style={styles.nearestBinCard}
@@ -254,6 +264,16 @@ export default function RecyclingBinMap({ onBinSelected, onClose }: MapProps) {
             ))}
           </ScrollView>
         </View>
+      )}
+
+      {/* Full Nearest Bins List */}
+      {showNearestBins && (
+        <NearestBinsList
+          bins={nearestBins}
+          onBinPress={handleBinPress}
+          userLocation={userLocation}
+          onClose={() => setShowNearestBins(false)}
+        />
       )}
 
       {/* Bin Info Modal */}
@@ -351,11 +371,27 @@ const styles = StyleSheet.create({
     elevation: 5,
     maxHeight: 120, // Limit height to prevent overflow
   },
+  nearestBinsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   nearestBinsTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#2E7D32',
-    marginBottom: 10,
+  },
+  viewAllButton: {
+    backgroundColor: '#2E7D32',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 15,
+  },
+  viewAllButtonText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '600',
   },
   nearestBinCard: {
     backgroundColor: '#f0f8f0',

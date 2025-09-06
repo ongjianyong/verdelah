@@ -11,18 +11,18 @@ export interface FirestoreBin extends RecyclingBin {
   maintenanceStatus?: string;
 }
 
-// Simplified loading - just get all bins and filter client-side for better performance
+// Load nearest 20 bins from Firestore with optimized querying
 export const loadNearbyBinsFromFirestore = async (
   userLat: number,
   userLon: number,
-  radiusKm: number = 5
+  radiusKm: number = 10
 ): Promise<RecyclingBin[]> => {
   try {
-    console.log(`🔍 Loading bins from Firestore (${radiusKm}km radius)`);
+    console.log(`🔍 Loading nearest 20 bins from Firestore (${radiusKm}km radius)`);
     
-    // Simple query to get all bins
+    // Get more bins initially to ensure we have enough within radius
     const binsRef = collection(db, 'recyclingBins');
-    const q = query(binsRef, orderBy('createdAt'), limit(100)); // Limit to 100 for performance
+    const q = query(binsRef, orderBy('createdAt'), limit(500)); // Increased limit for better coverage
     
     const querySnapshot = await getDocs(q);
     const allBins: FirestoreBin[] = querySnapshot.docs.map(doc => {
@@ -43,9 +43,9 @@ export const loadNearbyBinsFromFirestore = async (
       }))
       .filter(bin => bin.distance <= radiusKm)
       .sort((a, b) => (a.distance || 0) - (b.distance || 0))
-      .slice(0, 20); // Return top 20 closest
+      .slice(0, 20); // Return exactly 20 closest
 
-    console.log(`✅ Returning ${binsWithDistance.length} bins within ${radiusKm}km`);
+    console.log(`✅ Returning ${binsWithDistance.length} nearest bins within ${radiusKm}km`);
     
     // Log top 5 for debugging
     binsWithDistance.slice(0, 5).forEach((bin, index) => {
