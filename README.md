@@ -61,9 +61,9 @@ An eco-friendly mobile app that encourages sustainable habits through AI-powered
 
    **For Hackathon Judging:**
 
-   - Environment variables are pre-configured
-   - No additional setup required
-   - Simply proceed to step 4
+   - API keys and credentials will be provided through submitted Google Form
+   - Create a `.env` file in the VerdeLah directory
+   - Add the provided credentials to your `.env` file
 
 4. **Start the development server**
 
